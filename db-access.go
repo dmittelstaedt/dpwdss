@@ -3,24 +3,9 @@ package main
 import (
 	"database/sql"
 	"log"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
-
-// User represents an user
-type User struct {
-	ID                 int
-	FirstName          string
-	LastName           string
-	Name               string
-	Realm              string
-	Role               string
-	Password           string
-	LastChange         time.Time
-	LastChangePassword time.Time
-	LastChangeRecord   time.Time
-}
 
 func connection() *sql.DB {
 	db, err := sql.Open("mysql", "root:david@tcp(127.0.0.1:3306)/pwdss")
@@ -88,4 +73,31 @@ func removeUser(userName string) {
 // Update password of given user in table users.
 func updatePassword(userName, currentPassword, newPassword string) {
 	// update users set password='$newPasswordHashed' where name='$username' and password='$currentPasswordHashed'
+}
+
+// Read all permissions of given user.
+func readPermissions(db *sql.DB, userName string) ([]string, error) {
+	var permissions []string
+	stmt, err := db.Prepare("select name from groups where id in (select group_id from user_to_group where user_id=(select id from users where name=?))")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(userName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var permission string
+		if err = rows.Scan(&permission); err != nil {
+			log.Fatal(err)
+		}
+		permissions = append(permissions, permission)
+		log.Println("Group: " + permission)
+	}
+
+	return permissions, nil
 }
