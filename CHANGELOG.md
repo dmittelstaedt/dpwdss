@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 
-## [1.0.0] - 2018-??-??
+## [0.0.1] - 2019-??-??
+### Added
+- REST API for reading users and permissions
 
 [Unreleased]: https://link-to-current-head

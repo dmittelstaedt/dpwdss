@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -8,45 +9,84 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func readPermissionsHandler(w http.ResponseWriter, r *http.Request) {
-	// var permissions string
-	params := mux.Vars(r)
+var db *sql.DB
 
-	log.Println("user-name: " + params["user-name"])
-
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Success"))
+func setDB(dbf *sql.DB) {
+	db = dbf
 }
 
-// Experimentell hanlders
-func readAllUsersHandler(w http.ResponseWriter, r *http.Request) {
-	testUsers := []User{
-		User{ID: 1, Name: "David Mittelstaedt"},
-		User{ID: 2, Name: "Luke Skywalker"},
+// readUsersHandler handles requests for reading all users.
+// TODO: show only name and id?
+func readUsersHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Request: " + r.URL.Path)
+
+	users, err := readUsers(db)
+	if err != nil {
+		log.Println(err)
 	}
 
-	output, _ := json.Marshal(testUsers)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write(output)
+	response, err := json.Marshal(users)
+	if err != nil {
+		log.Println(err)
+	}
+
+	respondJSON(w, http.StatusOK, response)
 }
 
+// readUserHandler handles requests for reading details of specific user.
 func readUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	params := mux.Vars(r)
-	testUser := User{
-		ID:   3,
-		Name: "Han Solo",
+
+	user, err := readUser(db, params["name"])
+	if err != nil {
+		log.Println(err)
 	}
 
-	log.Println(params["id"])
+	response, err := json.Marshal(user)
+	if err != nil {
+		log.Println()
+	}
 
-	response, _ := json.Marshal(testUser)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(response)
+	respondJSON(w, http.StatusOK, response)
 }
+
+// readPermissionsHandler hanldes requests for reading all existing permissions.
+func readPermissionsHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Request: " + r.URL.Path)
+
+	permissions, err := readPermissions(db)
+	if err != nil {
+		log.Println(err)
+	}
+
+	response, err := json.Marshal(permissions)
+	if err != nil {
+		log.Println(err)
+	}
+
+	respondJSON(w, http.StatusOK, response)
+}
+
+// readPermissionHandler handles requests for reading permissions for specific user.
+func readPermissionHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Request: " + r.URL.Path)
+	params := mux.Vars(r)
+
+	permissions, err := readPermission(db, params["name"])
+	if err != nil {
+		log.Println(err)
+	}
+
+	response, err := json.Marshal(permissions)
+	if err != nil {
+		log.Println(err)
+	}
+
+	respondJSON(w, http.StatusOK, response)
+}
+
+// Experimentell hanlders
 
 func updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
