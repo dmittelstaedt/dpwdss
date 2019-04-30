@@ -86,6 +86,48 @@ func readPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, response)
 }
 
+func readUserPermissionsHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Request: " + r.URL.Path)
+	params := mux.Vars(r)
+
+	permissions, err := readUserPermissions(db, params["name"])
+	if err != nil {
+		log.Println(err)
+	}
+
+	response, err := json.Marshal(permissions)
+	if err != nil {
+		log.Println(err)
+	}
+
+	respondJSON(w, http.StatusOK, response)
+}
+
+func readUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Request: " + r.URL.Path)
+	params := mux.Vars(r)
+
+	permission, err := readUserPermission(db, params["name"], params["permission-name"])
+	if err != nil {
+		log.Println(err)
+	}
+
+	response, err := json.Marshal(permission)
+	if err != nil {
+		log.Println(err)
+	}
+
+	respondJSON(w, http.StatusOK, response)
+}
+
+// updateUserPermissionHandler handles requests for updating a permission of a user.
+func updateUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Request: " + r.URL.Path)
+	_ = mux.Vars(r) //TODO: use later
+
+	respondHeader(w, http.StatusOK)
+}
+
 // Experimentell hanlders
 
 func updateUserHandler(w http.ResponseWriter, r *http.Request) {

@@ -8,3 +8,7 @@ func respondJSON(w http.ResponseWriter, httpCode int, response []byte) {
 	w.WriteHeader(httpCode)
 	w.Write(response)
 }
+
+func respondHeader(w http.ResponseWriter, httpCode int) {
+	w.WriteHeader(httpCode)
+}

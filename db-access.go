@@ -58,17 +58,9 @@ func readUser(db *sql.DB, userName string) (User, error) {
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(userName)
-	if err != nil {
-		log.Println(err)
-	}
-	defer rows.Close()
-
 	var user User
-	for rows.Next() {
-		if err = rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Name, &user.Role); err != nil {
-			log.Println(err)
-		}
+	if err := stmt.QueryRow(userName).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Name, &user.Role); err != nil {
+		log.Println(err)
 	}
 
 	return user, nil
@@ -120,8 +112,23 @@ func readPermissions(db *sql.DB) ([]Permission, error) {
 }
 
 // ReadPermissions returns all permissions of given user.
-func readPermission(db *sql.DB, userName string) ([]Permission, error) {
-	stmt, err := db.Prepare("select name from groups where id in (select group_id from user_to_group where user_id=(select id from users where name=?))")
+func readPermission(db *sql.DB, permissionName string) (Permission, error) {
+	stmt, err := db.Prepare("select id, name from groups where name=?")
+	if err != nil {
+		log.Println(err)
+	}
+	defer stmt.Close()
+
+	var permission Permission
+	if err := stmt.QueryRow(permissionName).Scan(&permission.ID, &permission.Name); err != nil {
+		log.Println(err)
+	}
+
+	return permission, nil
+}
+
+func readUserPermissions(db *sql.DB, userName string) ([]Permission, error) {
+	stmt, err := db.Prepare("select id, name from groups where id in (select group_id from user_to_group where user_id=(select id from users where name=?))")
 	if err != nil {
 		log.Println(err)
 	}
@@ -129,18 +136,34 @@ func readPermission(db *sql.DB, userName string) ([]Permission, error) {
 
 	rows, err := stmt.Query(userName)
 	if err != nil {
-		log.Println(err)
+		log.Println()
 	}
 	defer rows.Close()
 
 	var permissions []Permission
 	for rows.Next() {
 		var permission Permission
-		if err = rows.Scan(&permission.Name); err != nil {
+		if err = rows.Scan(&permission.ID, &permission.Name); err != nil {
 			log.Println(err)
 		}
 		permissions = append(permissions, permission)
 	}
 
 	return permissions, nil
+}
+
+func readUserPermission(db *sql.DB, userName, permissionName string) (Permission, error) {
+	stmt, err := db.Prepare("select id, name from groups where id in (select group_id from user_to_group where user_id=(select id from users where name=?)) and name=?")
+	if err != nil {
+		log.Println(err)
+	}
+	defer stmt.Close()
+
+	var permission Permission
+	// TODO: check sql.ErrNoRows
+	if err = stmt.QueryRow(userName, permissionName).Scan(&permission.ID, &permission.Name); err != nil {
+		log.Println(err)
+	}
+
+	return permission, err
 }
