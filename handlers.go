@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -35,10 +34,7 @@ func readUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	params := mux.Vars(r)
 
-	user, err := readUser(db, params["name"])
-	if err != nil {
-		log.Println(err)
-	}
+	user, _ := readUser(db, params["name"])
 
 	response, err := json.Marshal(user)
 	if err != nil {
@@ -94,6 +90,7 @@ func readUserPermissionsHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
+	// TODO: Return 404 if no permission is set for user
 	respondJSON(w, http.StatusOK, response)
 }
 
@@ -111,54 +108,111 @@ func readUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, response)
 }
 
-// updateUserPermissionHandler handles requests for updating a permission of a user.
-func updateUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
+// insertUserPermissionHandler handles requests for inserting permission of a user.
+func insertUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	params := mux.Vars(r)
 
-	// Check if user exists --> return 404
-
-	// Check if new permission is valid --> return 422
-	_, ok := readPermission(db, params["permission-name"])
+	// Check if user resource exists --> 404
+	_, ok := readUser(db, params["name"])
 	if !ok {
-		respondHeader(w, http.StatusUnprocessableEntity)
+		respondHeader(w, http.StatusNotFound)
 		return
 	}
 
-	// Check if new permission already exists --> retrun 409
+	// Check if permission resource exists --> 409
 	_, ok = readUserPermission(db, params["name"], params["permission-name"])
 	if ok {
 		respondHeader(w, http.StatusConflict)
 		return
 	}
 
-	// Create substrings
-	substrs := strings.Split(params["permission-name"], "-")
-	dir := strings.Join(substrs[:len(substrs)-1], "-")
-	rw := strings.Join(substrs[len(substrs)-1:], "")
+	// Decode Body --> 500
+	var newPermission Permission
+	if err := json.NewDecoder(r.Body).Decode(&newPermission); err != nil {
+		respondHeader(w, http.StatusInternalServerError)
+		return
+	}
+
+	// Check if new permission is valid --> 422
+	_, ok = readPermission(db, newPermission.Name)
+	if !ok || newPermission.Name != params["permission-name"] {
+		respondHeader(w, http.StatusUnprocessableEntity)
+		return
+	}
+
+	if rowCnt := insertUserPermission(db, params["name"], newPermission.Name); rowCnt == 1 {
+		log.Println("Permission inserted")
+		respondHeader(w, http.StatusCreated)
+	}
+}
+
+// updateUserPermissionHandler handles requests for updating a permission of a user.
+func updateUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Request: " + r.URL.Path)
+	params := mux.Vars(r)
+
+	// Check if user resource exists --> 404
+	_, ok := readUser(db, params["name"])
+	if !ok {
+		respondHeader(w, http.StatusNotFound)
+		return
+	}
+
+	// Check if permission resource exists --> 404
+	_, ok = readUserPermission(db, params["name"], params["permission-name"])
+	if !ok {
+		respondHeader(w, http.StatusNotFound)
+		return
+	}
+
+	// Decode Body --> 500
+	var newPermission Permission
+	if err := json.NewDecoder(r.Body).Decode(&newPermission); err != nil {
+		respondHeader(w, http.StatusInternalServerError)
+		return
+	}
+
+	// Check if new permission is valid --> 422
+	_, ok = readPermission(db, newPermission.Name)
+	if !ok {
+		respondHeader(w, http.StatusUnprocessableEntity)
+		return
+	}
+
+	// Check if new permission is already set --> 409
+	_, ok = readUserPermission(db, params["name"], newPermission.Name)
+	if ok {
+		respondHeader(w, http.StatusConflict)
+		return
+	}
+
+	// Update resource --> 200
+	if rowCnt := updateUserPermission(db, params["name"], params["permission-name"], newPermission.Name); rowCnt == 1 {
+		log.Println("Permission updated")
+		respondHeader(w, http.StatusOK)
+	}
+
+	// Create substrings --> Move to Client logic
+	// substrs := strings.Split(params["permission-name"], "-")
+	// dir := strings.Join(substrs[:len(substrs)-1], "-")
+	// rw := strings.Join(substrs[len(substrs)-1:], "")
 
 	// Check if old permission already exists --> 404
-	var oldPermissionName string
-	if rw == "read" {
-		oldPermissionName = dir + "-write"
-	} else {
-		oldPermissionName = dir + "-read"
-	}
-	log.Println(oldPermissionName)
+	// var oldPermissionName string
+	// if rw == "read" {
+	// 	oldPermissionName = dir + "-write"
+	// } else {
+	// 	oldPermissionName = dir + "-read"
+	// }
+	// log.Println(oldPermissionName)
 
-	_, ok = readUserPermission(db, params["name"], oldPermissionName)
+	// _, ok = readUserPermission(db, params["name"], oldPermissionName)
+}
 
-	if ok {
-		if rowCnt := updateUserPermission(db, params["name"], oldPermissionName, params["permission-name"]); rowCnt == 1 {
-			log.Println("Permission updated")
-			respondHeader(w, http.StatusOK)
-		}
-	} else { // TODO: move to separate function
-		if rowCnt := insertUserPermission(db, params["name"], params["permission-name"]); rowCnt == 1 {
-			log.Println("Permission updated")
-			respondHeader(w, http.StatusCreated)
-		}
-	}
+func deleteUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO: delete permission for user
+	respondHeader(w, http.StatusNoContent)
 }
 
 // Experimentell hanlders
