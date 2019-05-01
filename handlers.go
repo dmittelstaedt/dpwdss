@@ -211,8 +211,26 @@ func updateUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: delete permission for user
-	respondHeader(w, http.StatusNoContent)
+	log.Println("Request: " + r.URL.Path)
+	params := mux.Vars(r)
+
+	// Check if user resource exists --> 404
+	_, ok := readUser(db, params["name"])
+	if !ok {
+		respondHeader(w, http.StatusNotFound)
+		return
+	}
+
+	// Check if permission resource exists --> 404
+	_, ok = readUserPermission(db, params["name"], params["permission-name"])
+	if !ok {
+		respondHeader(w, http.StatusNotFound)
+		return
+	}
+
+	if rowCnt := deleteUserPermission(db, params["name"], params["permission-name"]); rowCnt == 1 {
+		respondHeader(w, http.StatusNoContent)
+	}
 }
 
 // Experimentell hanlders
