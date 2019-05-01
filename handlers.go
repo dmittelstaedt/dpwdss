@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -16,14 +17,10 @@ func setDB(dbf *sql.DB) {
 }
 
 // readUsersHandler handles requests for reading all users.
-// TODO: show only name and id?
 func readUsersHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 
-	users, err := readUsers(db)
-	if err != nil {
-		log.Println(err)
-	}
+	users := readUsers(db)
 
 	response, err := json.Marshal(users)
 	if err != nil {
@@ -73,10 +70,7 @@ func readPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	params := mux.Vars(r)
 
-	permissions, err := readPermission(db, params["name"])
-	if err != nil {
-		log.Println(err)
-	}
+	permissions, _ := readPermission(db, params["name"])
 
 	response, err := json.Marshal(permissions)
 	if err != nil {
@@ -107,10 +101,7 @@ func readUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	params := mux.Vars(r)
 
-	permission, err := readUserPermission(db, params["name"], params["permission-name"])
-	if err != nil {
-		log.Println(err)
-	}
+	permission, _ := readUserPermission(db, params["name"], params["permission-name"])
 
 	response, err := json.Marshal(permission)
 	if err != nil {
@@ -123,9 +114,51 @@ func readUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 // updateUserPermissionHandler handles requests for updating a permission of a user.
 func updateUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
-	_ = mux.Vars(r) //TODO: use later
+	params := mux.Vars(r)
 
-	respondHeader(w, http.StatusOK)
+	// Check if user exists --> return 404
+
+	// Check if new permission is valid --> return 422
+	_, ok := readPermission(db, params["permission-name"])
+	if !ok {
+		respondHeader(w, http.StatusUnprocessableEntity)
+		return
+	}
+
+	// Check if new permission already exists --> retrun 409
+	_, ok = readUserPermission(db, params["name"], params["permission-name"])
+	if ok {
+		respondHeader(w, http.StatusConflict)
+		return
+	}
+
+	// Create substrings
+	substrs := strings.Split(params["permission-name"], "-")
+	dir := strings.Join(substrs[:len(substrs)-1], "-")
+	rw := strings.Join(substrs[len(substrs)-1:], "")
+
+	// Check if old permission already exists --> 404
+	var oldPermissionName string
+	if rw == "read" {
+		oldPermissionName = dir + "-write"
+	} else {
+		oldPermissionName = dir + "-read"
+	}
+	log.Println(oldPermissionName)
+
+	_, ok = readUserPermission(db, params["name"], oldPermissionName)
+
+	if ok {
+		if rowCnt := updateUserPermission(db, params["name"], oldPermissionName, params["permission-name"]); rowCnt == 1 {
+			log.Println("Permission updated")
+			respondHeader(w, http.StatusOK)
+		}
+	} else { // TODO: move to separate function
+		if rowCnt := insertUserPermission(db, params["name"], params["permission-name"]); rowCnt == 1 {
+			log.Println("Permission updated")
+			respondHeader(w, http.StatusCreated)
+		}
+	}
 }
 
 // Experimentell hanlders

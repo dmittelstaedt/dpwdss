@@ -20,13 +20,8 @@ func connection() *sql.DB {
 	return db
 }
 
-// Check if user is valid. Returns name and role of user.
-func isValidUser(userName, password string) {
-	// select name, role from users where username='$username' and password='$passwordHashed' limit 1
-}
-
 // readUsers returns a slice with all users.
-func readUsers(db *sql.DB) ([]User, error) {
+func readUsers(db *sql.DB) []User {
 	stmt, err := db.Prepare("select id, firstname, lastname, name, role from users")
 	if err != nil {
 		log.Println(err)
@@ -47,7 +42,7 @@ func readUsers(db *sql.DB) ([]User, error) {
 		}
 		users = append(users, user)
 	}
-	return users, nil
+	return users
 }
 
 // readUser returns user struct with all information.
@@ -111,8 +106,8 @@ func readPermissions(db *sql.DB) ([]Permission, error) {
 	return permissions, nil
 }
 
-// ReadPermissions returns all permissions of given user.
-func readPermission(db *sql.DB, permissionName string) (Permission, error) {
+// readPermissions returns Permission for given name of a Permission.
+func readPermission(db *sql.DB, permissionName string) (Permission, bool) {
 	stmt, err := db.Prepare("select id, name from groups where name=?")
 	if err != nil {
 		log.Println(err)
@@ -120,13 +115,20 @@ func readPermission(db *sql.DB, permissionName string) (Permission, error) {
 	defer stmt.Close()
 
 	var permission Permission
-	if err := stmt.QueryRow(permissionName).Scan(&permission.ID, &permission.Name); err != nil {
+	err = stmt.QueryRow(permissionName).Scan(&permission.ID, &permission.Name)
+	if err != nil && err != sql.ErrNoRows {
 		log.Println(err)
 	}
 
-	return permission, nil
+	ok := false
+	if err == nil {
+		ok = true
+	}
+
+	return permission, ok
 }
 
+// readUserPermissions returns all permissions of given user.
 func readUserPermissions(db *sql.DB, userName string) ([]Permission, error) {
 	stmt, err := db.Prepare("select id, name from groups where id in (select group_id from user_to_group where user_id=(select id from users where name=?))")
 	if err != nil {
@@ -152,7 +154,8 @@ func readUserPermissions(db *sql.DB, userName string) ([]Permission, error) {
 	return permissions, nil
 }
 
-func readUserPermission(db *sql.DB, userName, permissionName string) (Permission, error) {
+// readUserPermission returns permission of given user and permission
+func readUserPermission(db *sql.DB, userName, permissionName string) (Permission, bool) {
 	stmt, err := db.Prepare("select id, name from groups where id in (select group_id from user_to_group where user_id=(select id from users where name=?)) and name=?")
 	if err != nil {
 		log.Println(err)
@@ -160,10 +163,57 @@ func readUserPermission(db *sql.DB, userName, permissionName string) (Permission
 	defer stmt.Close()
 
 	var permission Permission
-	// TODO: check sql.ErrNoRows
-	if err = stmt.QueryRow(userName, permissionName).Scan(&permission.ID, &permission.Name); err != nil {
+	err = stmt.QueryRow(userName, permissionName).Scan(&permission.ID, &permission.Name)
+	if err != nil && err != sql.ErrNoRows {
 		log.Println(err)
 	}
 
-	return permission, err
+	ok := false
+	if err == nil {
+		ok = true
+	}
+
+	return permission, ok
+}
+
+// updateUserPermission updates the old permission with tne new permission. Returns number of affecetd rows.
+func updateUserPermission(db *sql.DB, userName, oldPermissionName, newPermissionName string) int64 {
+	stmt, err := db.Prepare("update user_to_group set group_id=(select id from groups where name=?) where user_id=(select id from users where name=?) and group_id=(select id from groups where name=?)")
+	if err != nil {
+		log.Println(err)
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(newPermissionName, userName, oldPermissionName)
+	if err != nil {
+		log.Println(err)
+	}
+
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		log.Println(err)
+	}
+
+	return rowCnt
+}
+
+// insertUserPermission inserts a new permission for the given user.
+func insertUserPermission(db *sql.DB, userName, permissionName string) int64 {
+	stmt, err := db.Prepare("insert into user_to_group (user_id, group_id) values ((select id from users where name=?), (select id from groups where name=?))")
+	if err != nil {
+		log.Println(err)
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(userName, permissionName)
+	if err != nil {
+		log.Println(err)
+	}
+
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		log.Println(err)
+	}
+
+	return rowCnt
 }
