@@ -162,7 +162,6 @@ func updateUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Experimentell hanlders
-
 func updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	var testUser User
