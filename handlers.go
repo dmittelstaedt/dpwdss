@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -9,17 +8,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var db *sql.DB
-
-func setDB(dbf *sql.DB) {
-	db = dbf
-}
-
 // readUsersHandler handles requests for reading all users.
-func readUsersHandler(w http.ResponseWriter, r *http.Request) {
+func (server *Server) readUsersHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 
-	users := readUsers(db)
+	users := readUsers(server.DB)
 
 	response, err := json.Marshal(users)
 	if err != nil {
@@ -30,11 +23,11 @@ func readUsersHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // readUserHandler handles requests for reading details of specific user.
-func readUserHandler(w http.ResponseWriter, r *http.Request) {
+func (server *Server) readUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	params := mux.Vars(r)
 
-	user, _ := readUser(db, params["name"])
+	user, _ := readUser(server.DB, params["name"])
 
 	response, err := json.Marshal(user)
 	if err != nil {
@@ -45,10 +38,10 @@ func readUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // readPermissionsHandler hanldes requests for reading all existing permissions.
-func readPermissionsHandler(w http.ResponseWriter, r *http.Request) {
+func (server *Server) readPermissionsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 
-	permissions, err := readPermissions(db)
+	permissions, err := readPermissions(server.DB)
 	if err != nil {
 		log.Println(err)
 	}
@@ -62,11 +55,11 @@ func readPermissionsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // readPermissionHandler handles requests for reading permissions for specific user.
-func readPermissionHandler(w http.ResponseWriter, r *http.Request) {
+func (server *Server) readPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	params := mux.Vars(r)
 
-	permissions, _ := readPermission(db, params["name"])
+	permissions, _ := readPermission(server.DB, params["name"])
 
 	response, err := json.Marshal(permissions)
 	if err != nil {
@@ -76,11 +69,11 @@ func readPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, response)
 }
 
-func readUserPermissionsHandler(w http.ResponseWriter, r *http.Request) {
+func (server *Server) readUserPermissionsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	params := mux.Vars(r)
 
-	permissions, err := readUserPermissions(db, params["name"])
+	permissions, err := readUserPermissions(server.DB, params["name"])
 	if err != nil {
 		log.Println(err)
 	}
@@ -94,11 +87,11 @@ func readUserPermissionsHandler(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, response)
 }
 
-func readUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
+func (server *Server) readUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	params := mux.Vars(r)
 
-	permission, _ := readUserPermission(db, params["name"], params["permission-name"])
+	permission, _ := readUserPermission(server.DB, params["name"], params["permission-name"])
 
 	response, err := json.Marshal(permission)
 	if err != nil {
@@ -109,19 +102,19 @@ func readUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // insertUserPermissionHandler handles requests for inserting permission of a user.
-func insertUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
+func (server *Server) insertUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	params := mux.Vars(r)
 
 	// Check if user resource exists --> 404
-	_, ok := readUser(db, params["name"])
+	_, ok := readUser(server.DB, params["name"])
 	if !ok {
 		respondHeader(w, http.StatusNotFound)
 		return
 	}
 
 	// Check if permission resource exists --> 409
-	_, ok = readUserPermission(db, params["name"], params["permission-name"])
+	_, ok = readUserPermission(server.DB, params["name"], params["permission-name"])
 	if ok {
 		respondHeader(w, http.StatusConflict)
 		return
@@ -135,32 +128,32 @@ func insertUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if new permission is valid --> 422
-	_, ok = readPermission(db, newPermission.Name)
+	_, ok = readPermission(server.DB, newPermission.Name)
 	if !ok || newPermission.Name != params["permission-name"] {
 		respondHeader(w, http.StatusUnprocessableEntity)
 		return
 	}
 
-	if rowCnt := insertUserPermission(db, params["name"], newPermission.Name); rowCnt == 1 {
+	if rowCnt := insertUserPermission(server.DB, params["name"], newPermission.Name); rowCnt == 1 {
 		log.Println("Permission inserted")
 		respondHeader(w, http.StatusCreated)
 	}
 }
 
 // updateUserPermissionHandler handles requests for updating a permission of a user.
-func updateUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
+func (server *Server) updateUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	params := mux.Vars(r)
 
 	// Check if user resource exists --> 404
-	_, ok := readUser(db, params["name"])
+	_, ok := readUser(server.DB, params["name"])
 	if !ok {
 		respondHeader(w, http.StatusNotFound)
 		return
 	}
 
 	// Check if permission resource exists --> 404
-	_, ok = readUserPermission(db, params["name"], params["permission-name"])
+	_, ok = readUserPermission(server.DB, params["name"], params["permission-name"])
 	if !ok {
 		respondHeader(w, http.StatusNotFound)
 		return
@@ -174,21 +167,21 @@ func updateUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if new permission is valid --> 422
-	_, ok = readPermission(db, newPermission.Name)
+	_, ok = readPermission(server.DB, newPermission.Name)
 	if !ok {
 		respondHeader(w, http.StatusUnprocessableEntity)
 		return
 	}
 
 	// Check if new permission is already set --> 409
-	_, ok = readUserPermission(db, params["name"], newPermission.Name)
+	_, ok = readUserPermission(server.DB, params["name"], newPermission.Name)
 	if ok {
 		respondHeader(w, http.StatusConflict)
 		return
 	}
 
 	// Update resource --> 200
-	if rowCnt := updateUserPermission(db, params["name"], params["permission-name"], newPermission.Name); rowCnt == 1 {
+	if rowCnt := updateUserPermission(server.DB, params["name"], params["permission-name"], newPermission.Name); rowCnt == 1 {
 		log.Println("Permission updated")
 		respondHeader(w, http.StatusOK)
 	}
@@ -210,31 +203,31 @@ func updateUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	// _, ok = readUserPermission(db, params["name"], oldPermissionName)
 }
 
-func deleteUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
+func (server *Server) deleteUserPermissionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	params := mux.Vars(r)
 
 	// Check if user resource exists --> 404
-	_, ok := readUser(db, params["name"])
+	_, ok := readUser(server.DB, params["name"])
 	if !ok {
 		respondHeader(w, http.StatusNotFound)
 		return
 	}
 
 	// Check if permission resource exists --> 404
-	_, ok = readUserPermission(db, params["name"], params["permission-name"])
+	_, ok = readUserPermission(server.DB, params["name"], params["permission-name"])
 	if !ok {
 		respondHeader(w, http.StatusNotFound)
 		return
 	}
 
-	if rowCnt := deleteUserPermission(db, params["name"], params["permission-name"]); rowCnt == 1 {
+	if rowCnt := deleteUserPermission(server.DB, params["name"], params["permission-name"]); rowCnt == 1 {
 		respondHeader(w, http.StatusNoContent)
 	}
 }
 
 // Experimentell hanlders
-func updateUserHandler(w http.ResponseWriter, r *http.Request) {
+func (server *Server) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)
 	var testUser User
 	if err := json.NewDecoder(r.Body).Decode(&testUser); err != nil {

@@ -7,19 +7,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func connection() *sql.DB {
-	db, err := sql.Open("mysql", "root:david@tcp(127.0.0.1:3306)/pwdss")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := db.Ping(); err != nil {
-		log.Fatal(err)
-	}
-
-	return db
-}
-
 // readUsers returns a slice with all users.
 func readUsers(db *sql.DB) []User {
 	stmt, err := db.Prepare("select id, firstname, lastname, name, role from users")
