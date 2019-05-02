@@ -26,6 +26,13 @@ func NewServer(user, password, dbName string) Server {
 
 // SetRoutes sets the routes for the server
 func (server *Server) SetRoutes() {
+	// TODO: add version and json extension to path, e.g. /api/v1/users.json, /api/v1/users/luke.json
+	// TODO: no singular --> always plural resources
+	// TODO: at begining 3 Return Codes are enough:
+	// successful --> 200
+	// client-side error --> 400 bad request
+	// server-side error --> 500 internal server
+	// TODO: include message in body if failure
 	server.Router.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
 	server.Router.Methods("GET").Path("/user/{name}").Name("readUser").HandlerFunc(server.readUserHandler)
 	server.Router.Methods("GET").Path("/user/{name}/permissions").Name("readUserPermissions").HandlerFunc(server.readUserPermissionsHandler)
