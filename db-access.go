@@ -55,23 +55,23 @@ func readUser(db *sql.DB, userName string) (User, bool) {
 }
 
 // Add new user to table users.
-func addUser(firstName, lastName, userName, permission string) {
-	// insert into users (firstname, lastname, name, realm, role, permission, password, last_change_password) VALUES ('$firstName', '$lastName', '$username', '$realm', '$role', '$permission', '$passwordHashed', NOW())
-}
+// func addUser(firstName, lastName, userName, permission string) {
+// 	// insert into users (firstname, lastname, name, realm, role, permission, password, last_change_password) VALUES ('$firstName', '$lastName', '$username', '$realm', '$role', '$permission', '$passwordHashed', NOW())
+// }
 
-func updateUser(firstName, lastName, userName, permission string) {
-	// update users set firstname='$firstName', lastname='$lastName', permission='$permission' where name='$username'
-}
+// func updateUser(firstName, lastName, userName, permission string) {
+// 	// update users set firstname='$firstName', lastname='$lastName', permission='$permission' where name='$username'
+// }
 
 // Remove existing user from table users.
-func removeUser(userName string) {
-	// delete from users where name='$userName'
-}
+// func removeUser(userName string) {
+// 	// delete from users where name='$userName'
+// }
 
 // Update password of given user in table users.
-func updatePassword(userName, currentPassword, newPassword string) {
-	// update users set password='$newPasswordHashed' where name='$username' and password='$currentPasswordHashed'
-}
+// func updatePassword(userName, currentPassword, newPassword string) {
+// 	// update users set password='$newPasswordHashed' where name='$username' and password='$currentPasswordHashed'
+// }
 
 // readPermissions returns all possible permissions.
 func readPermissions(db *sql.DB) ([]Permission, error) {
