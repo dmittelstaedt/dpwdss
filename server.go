@@ -33,6 +33,8 @@ func (server *Server) SetRoutes() {
 	// client-side error --> 400 bad request
 	// server-side error --> 500 internal server
 	// TODO: include message in body if failure
+	// TODO: get permissions with queries, e.g. /permissions?uname=luke;gname=d1-read
+	// TODO: validate user input in request bodies --> implement validator
 	server.Router.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
 	server.Router.Methods("GET").Path("/user/{name}").Name("readUser").HandlerFunc(server.readUserHandler)
 	server.Router.Methods("GET").Path("/user/{name}/permissions").Name("readUserPermissions").HandlerFunc(server.readUserPermissionsHandler)
