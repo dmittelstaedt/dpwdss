@@ -63,13 +63,9 @@ func TestMain(m *testing.M) {
 func TestReadEmptyUsers(t *testing.T) {
 	clearTables()
 
-	req, _ := http.NewRequest("GET", "/users", nil)
-	rr := httptest.NewRecorder()
-	testServer.Router.ServeHTTP(rr, req)
+	rr := executeRequest(t, "GET", "/users")
 
-	if rr.Code != http.StatusOK {
-		t.Errorf("Expected response code %v. Got %v", http.StatusOK, rr.Code)
-	}
+	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var users []User
 	if err := json.NewDecoder(rr.Body).Decode(&users); err != nil {
@@ -100,13 +96,9 @@ func TestReadUsers(t *testing.T) {
 	addUserT(t, luke)
 	addUserT(t, han)
 
-	req, _ := http.NewRequest("GET", "/users", nil)
-	rr := httptest.NewRecorder()
-	testServer.Router.ServeHTTP(rr, req)
+	rr := executeRequest(t, "GET", "/users")
 
-	if rr.Code != http.StatusOK {
-		t.Errorf("Expected response code %v. Got %v", http.StatusOK, rr.Code)
-	}
+	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var users []User
 	if err := json.NewDecoder(rr.Body).Decode(&users); err != nil {
@@ -114,20 +106,16 @@ func TestReadUsers(t *testing.T) {
 	}
 
 	if len(users) != 2 {
-		t.Errorf("Expected number of users %v, Got %v", 0, len(users))
+		t.Errorf("Expected number of users %v, Got %v", 2, len(users))
 	}
 }
 
 func TestReadNonExistentUser(t *testing.T) {
 	clearTables()
 
-	req, _ := http.NewRequest("GET", "/user/test", nil)
-	rr := httptest.NewRecorder()
-	testServer.Router.ServeHTTP(rr, req)
+	rr := executeRequest(t, "GET", "/users/test")
 
-	if rr.Code != http.StatusNotFound {
-		t.Errorf("Expected response code %v. Got %v", http.StatusNotFound, rr.Code)
-	}
+	checkResponseCode(t, http.StatusNotFound, rr.Code)
 }
 
 func TestReadUser(t *testing.T) {
@@ -141,13 +129,9 @@ func TestReadUser(t *testing.T) {
 	}
 	addUserT(t, luke)
 
-	req, _ := http.NewRequest("GET", "/user/luke", nil)
-	rr := httptest.NewRecorder()
-	testServer.Router.ServeHTTP(rr, req)
+	rr := executeRequest(t, "GET", "/users/luke")
 
-	if rr.Code != http.StatusOK {
-		t.Errorf("Expected response code %v. Got %v", http.StatusNotFound, rr.Code)
-	}
+	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var user User
 	if err := json.NewDecoder(rr.Body).Decode(&user); err != nil {
@@ -157,7 +141,6 @@ func TestReadUser(t *testing.T) {
 	if user != luke {
 		t.Errorf("Expected user: %v. Got %v", luke, user)
 	}
-
 }
 
 func TestUpdateNonExistentUser(t *testing.T) {
@@ -169,19 +152,77 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestReadEmptyGroups(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+
+	rr := executeRequest(t, "GET", "/groups")
+
+	checkResponseCode(t, http.StatusOK, rr.Code)
+
+	var groups []Group
+	if err := json.NewDecoder(rr.Body).Decode(&groups); err != nil {
+		t.Log("Error during parsing respone body")
+	}
+
+	if len(groups) != 0 {
+		t.Errorf("Expected number of groups %v, Got %v", 0, len(groups))
+	}
 }
 
 func TestReadGroups(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+	d1Read := Group{
+		ID:   1,
+		Name: "d1-read",
+	}
+	d1Write := Group{
+		ID:   2,
+		Name: "d1-write",
+	}
+	addGroupT(t, d1Read)
+	addGroupT(t, d1Write)
+
+	rr := executeRequest(t, "GET", "/groups")
+
+	checkResponseCode(t, http.StatusOK, rr.Code)
+
+	var groups []Group
+	if err := json.NewDecoder(rr.Body).Decode(&groups); err != nil {
+		t.Log("Error during parsing respone body")
+	}
+
+	if len(groups) != 2 {
+		t.Errorf("Expected number of groups %v, Got %v", 2, len(groups))
+	}
 }
 
 func TestReadNonExistentGroup(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+
+	rr := executeRequest(t, "GET", "/groups/test")
+
+	checkResponseCode(t, http.StatusNotFound, rr.Code)
 }
 
 func TestReadGroup(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+	d1Read := Group{
+		ID:   1,
+		Name: "d1-read",
+	}
+	addGroupT(t, d1Read)
+
+	rr := executeRequest(t, "GET", "/groups/d1-read")
+
+	checkResponseCode(t, http.StatusOK, rr.Code)
+
+	var group Group
+	if err := json.NewDecoder(rr.Body).Decode(&group); err != nil {
+		t.Log("Error during parsing respone body")
+	}
+
+	if group != d1Read {
+		t.Errorf("Expected user: %v. Got %v", group, d1Read)
+	}
 }
 
 func TestReadEmptyPermissions(t *testing.T) {
@@ -239,6 +280,25 @@ func clearTables() {
 
 func addUserT(t *testing.T, user User) {
 	if _, err := testServer.DB.Exec("insert into users (firstname, lastname, name, role) VALUES(?, ?, ?, ?)", user.FirstName, user.LastName, user.Name, user.Role); err != nil {
-		t.Logf("Error inserting user")
+		t.Logf("Error inserting user: %v", err)
+	}
+}
+
+func addGroupT(t *testing.T, group Group) {
+	if _, err := testServer.DB.Exec("insert into groups (name) values (?)", group.Name); err != nil {
+		t.Logf("Error inserting group: %v", err)
+	}
+}
+
+func executeRequest(t *testing.T, method, route string) *httptest.ResponseRecorder {
+	req, _ := http.NewRequest(method, route, nil)
+	rr := httptest.NewRecorder()
+	testServer.Router.ServeHTTP(rr, req)
+	return rr
+}
+
+func checkResponseCode(t *testing.T, expectedCode, actualCode int) {
+	if actualCode != expectedCode {
+		t.Errorf("Expected response code %v. Got %v", expectedCode, actualCode)
 	}
 }

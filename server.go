@@ -26,8 +26,7 @@ func NewServer(user, password, dbName string) Server {
 
 // SetRoutes sets the routes for the server
 func (server *Server) SetRoutes() {
-	// TODO: add version and json extension to path, e.g. /api/v1/users.json, /api/v1/users/luke.json
-	// TODO: no singular --> always plural resources
+	// TODO: json extension to path, e.g. /api/v1/users.json, /api/v1/users/luke.json
 	// TODO: at begining 3 Return Codes are enough:
 	// successful --> 200
 	// client-side error --> 400 bad request
@@ -35,17 +34,14 @@ func (server *Server) SetRoutes() {
 	// TODO: include message in body if failure
 	// TODO: get permissions with queries, e.g. /permissions?uname=luke;gname=d1-read
 	// TODO: validate user input in request bodies --> implement validator
+	subrouter := server.Router.PathPrefix("/api/v1").Subrouter()
+	subrouter.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
 	server.Router.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
-	server.Router.Methods("GET").Path("/user/{name}").Name("readUser").HandlerFunc(server.readUserHandler)
-	server.Router.Methods("GET").Path("/user/{name}/permissions").Name("readUserPermissions").HandlerFunc(server.readUserPermissionsHandler)
-
-	server.Router.Methods("GET").Path("/user/{name}/permission/{permission-name}").Name("readUserPermission").HandlerFunc(server.readUserPermissionHandler)
-	server.Router.Methods("POST").Path("/user/{name}/permission/{permission-name}").Name("insertUserPermission").HandlerFunc(server.insertUserPermissionHandler)
-	server.Router.Methods("PUT").Path("/user/{name}/permission/{permission-name}").Name("updateUserPermission").HandlerFunc(server.updateUserPermissionHandler)
-	server.Router.Methods("DELETE").Path("/user/{name}/permission/{permission-name}").Name("deleteUserPermission").HandlerFunc(server.deleteUserPermissionHandler)
-
+	server.Router.Methods("GET").Path("/users/{name}").Name("readUser").HandlerFunc(server.readUserHandler)
+	server.Router.Methods("GET").Path("/groups").Name("readGroups").HandlerFunc(server.readGroupsHandler)
+	server.Router.Methods("GET").Path("/groups/{name}").Name("readGroup").HandlerFunc(server.readGroupHandler)
 	server.Router.Methods("GET").Path("/permissions").Name("readPermissions").HandlerFunc(server.readPermissionsHandler)
-	server.Router.Methods("GET").Path("/permission/{name}").Name("readPermission").HandlerFunc(server.readPermissionHandler)
+	server.Router.Methods("GET").Path("/permissions/{id}").Name("readPermission").HandlerFunc(server.readPermissionHandler)
 
 	// Experimentell routes
 	server.Router.Methods("POST").Path("/update").Name("update").HandlerFunc(server.updateUserHandler)

@@ -23,10 +23,15 @@ type User struct {
 	Password  string `json:"password,omitempty"`
 }
 
-// Permission represents a permission
-type Permission struct {
+// Group represents a group
+type Group struct {
 	ID   int    `json:"id,omitempty"`
 	Name string `json:"name,omitempty"`
 }
 
-// TODO: strcut for holding groups
+// Permission represents a permission
+type Permission struct {
+	ID      int `json:"id,omitempty"`
+	UserID  int `json:"userid,omitempty"`
+	GroupID int `json:"groupid,omitempty"`
+}
