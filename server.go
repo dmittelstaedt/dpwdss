@@ -27,16 +27,22 @@ func NewServer(user, password, dbName string) Server {
 // SetRoutes sets the routes for the server
 func (server *Server) SetRoutes() {
 	subrouter := server.Router.PathPrefix("/api/v1").Subrouter()
+
+	// users
 	subrouter.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
 	subrouter.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
 	subrouter.Methods("GET").Path("/users/{name}").Name("readUser").HandlerFunc(server.readUserHandler)
+
+	// groups
 	subrouter.Methods("GET").Path("/groups").Name("readGroups").HandlerFunc(server.readGroupsHandler)
 	subrouter.Methods("GET").Path("/groups/{name}").Name("readGroup").HandlerFunc(server.readGroupHandler)
+
+	// permissions
 	subrouter.Methods("GET").Path("/permissions").Name("readPermissions").HandlerFunc(server.readPermissionsHandler)
 	subrouter.Methods("GET").Path("/permissions/{id}").Name("readPermission").HandlerFunc(server.readPermissionHandler)
-
-	// Experimentell routes
-	server.Router.Methods("POST").Path("/update").Name("update").HandlerFunc(server.updateUserHandler)
+	subrouter.Methods("POST").Path("/permissions").Name("insertPermission").HandlerFunc(server.insertPermissionHandler)
+	subrouter.Methods("PUT").Path("/permissions/{id}").Name("updatePermission").HandlerFunc(server.updatePermissionHandler)
+	subrouter.Methods("DELETE").Path("/permissions/{id}").Name("deletePermission").HandlerFunc(server.deletePermissionHandler)
 }
 
 // Run starts the server

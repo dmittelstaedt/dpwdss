@@ -68,8 +68,6 @@ func TestMain(m *testing.M) {
 
 	code := m.Run()
 
-	clearTables()
-
 	os.Exit(code)
 }
 
@@ -242,12 +240,20 @@ func TestReadPermissions(t *testing.T) {
 	}
 }
 
-func TestReadNonExistentPermissions(t *testing.T) {
+func TestReadNonExistentPermission(t *testing.T) {
 	clearTables()
 
 	rr := executeRequest(t, "GET", "/permissions/36", nil)
 
 	checkResponseCode(t, http.StatusNotFound, rr.Code)
+}
+
+func TestReadNonIDPermission(t *testing.T) {
+	clearTables()
+
+	rr := executeRequest(t, "GET", "/permissions/text", nil)
+
+	checkResponseCode(t, http.StatusBadRequest, rr.Code)
 }
 
 func TestReadPermission(t *testing.T) {
@@ -270,6 +276,30 @@ func TestReadPermission(t *testing.T) {
 	}
 }
 
+func TestInsertPermission(t *testing.T) {
+	clearTables()
+	addUserT(t, luke)
+	addGroupT(t, d1Read)
+
+	body, err := json.Marshal(p1)
+	if err != nil {
+		t.Logf("Error parsing request")
+	}
+
+	rr := executeRequest(t, "POST", "/permissions", body)
+
+	checkResponseCode(t, http.StatusCreated, rr.Code)
+
+	var permission Permission
+	if err := json.NewDecoder(rr.Body).Decode(&permission); err != nil {
+		t.Logf("Error parsing response body")
+	}
+
+	if permission != p1 {
+		t.Errorf("Expected permission %v, Got %v", p1, permission)
+	}
+}
+
 func TestUpdateNonExistentPermission(t *testing.T) {
 	clearTables()
 
@@ -282,12 +312,22 @@ func TestUpdateNonExistentPermission(t *testing.T) {
 	checkResponseCode(t, http.StatusNotFound, rr.Code)
 }
 
+func TestUpdateNonIDPermission(t *testing.T) {
+	clearTables()
+
+	rr := executeRequest(t, "PUT", "/permissions/text", nil)
+
+	checkResponseCode(t, http.StatusBadRequest, rr.Code)
+}
+
 func TestUpdatePermission(t *testing.T) {
 	clearTables()
 	addUserT(t, luke)
+	addUserT(t, han)
 	addGroupT(t, d1Read)
 	addGroupT(t, d1Write)
 	addPermissionT(t, p1)
+	addPermissionT(t, p2)
 
 	p1New := Permission{
 		ID:      p1.ID,
@@ -302,25 +342,45 @@ func TestUpdatePermission(t *testing.T) {
 	rr := executeRequest(t, "PUT", "/permissions/1", body)
 
 	checkResponseCode(t, http.StatusOK, rr.Code)
-}
 
-func TestInsertPermission(t *testing.T) {
-	clearTables()
-	addUserT(t, luke)
-	addGroupT(t, d1Read)
-
-	body, err := json.Marshal(p1)
-	if err != nil {
-		t.Logf("Error parsing request")
+	var permission Permission
+	if err := json.NewDecoder(rr.Body).Decode(&permission); err != nil {
+		t.Logf("Error parsing response body")
 	}
 
-	rr := executeRequest(t, "POST", "/permissions", body)
+	if permission != p1New {
+		t.Errorf("Expected permission %v, Got %v", p1New, permission)
+	}
+}
 
-	checkResponseCode(t, http.StatusCreated, rr.Code)
+func TestDeleteNonExistentPermission(t *testing.T) {
+	clearTables()
+
+	rr := executeRequest(t, "DELETE", "/permissions/text", nil)
+
+	checkResponseCode(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestDeleteNonIDPermission(t *testing.T) {
+	clearTables()
+
+	rr := executeRequest(t, "DELETE", "/permissions/1", nil)
+
+	checkResponseCode(t, http.StatusNotFound, rr.Code)
 }
 
 func TestDeletePermission(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+	addUserT(t, luke)
+	addUserT(t, han)
+	addGroupT(t, d1Read)
+	addGroupT(t, d1Write)
+	addPermissionT(t, p1)
+	addPermissionT(t, p2)
+
+	rr := executeRequest(t, "DELETE", "/permissions/1", nil)
+
+	checkResponseCode(t, http.StatusNoContent, rr.Code)
 }
 
 func initializeStructs() {

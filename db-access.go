@@ -216,15 +216,15 @@ func readPermission(db *sql.DB, permissionID int) (Permission, bool) {
 // 	return permission, ok
 // }
 
-// insertUserPermission inserts a new permission for the given user.
-func insertUserPermission(db *sql.DB, userName, permissionName string) int64 {
-	stmt, err := db.Prepare("insert into user_to_group (user_id, group_id) values ((select id from users where name=?), (select id from groups where name=?))")
+// insertPermission inserts a new permission with the given user_id and group_id.
+func insertPermission(db *sql.DB, permmission Permission) int64 {
+	stmt, err := db.Prepare("insert into user_to_group (user_id, group_id) values (?, ?)")
 	if err != nil {
 		log.Println(err)
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(userName, permissionName)
+	res, err := stmt.Exec(permmission.UserID, permmission.GroupID)
 	if err != nil {
 		log.Println(err)
 	}
@@ -237,15 +237,15 @@ func insertUserPermission(db *sql.DB, userName, permissionName string) int64 {
 	return rowCnt
 }
 
-// updateUserPermission updates the old permission with tne new permission. Returns number of affecetd rows.
-func updateUserPermission(db *sql.DB, userName, oldPermissionName, newPermissionName string) int64 {
-	stmt, err := db.Prepare("update user_to_group set group_id=(select id from groups where name=?) where user_id=(select id from users where name=?) and group_id=(select id from groups where name=?)")
+// updatePermission updates the old permission with tne new permission. Returns number of affecetd rows.
+func updatePermission(db *sql.DB, oldPermission, newPermission Permission) int64 {
+	stmt, err := db.Prepare("update user_to_group set user_id=?, group_id=? where id=?")
 	if err != nil {
 		log.Println(err)
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(newPermissionName, userName, oldPermissionName)
+	res, err := stmt.Exec(newPermission.UserID, newPermission.GroupID, oldPermission.ID)
 	if err != nil {
 		log.Println(err)
 	}
@@ -258,15 +258,15 @@ func updateUserPermission(db *sql.DB, userName, oldPermissionName, newPermission
 	return rowCnt
 }
 
-// deleteUserPermission deletes the given permission for the given user.
-func deleteUserPermission(db *sql.DB, userName, permissionName string) int64 {
-	stmt, err := db.Prepare("delete from user_to_group where user_id=(select id from users where name=?) and group_id=(select id from groups where name=?)")
+// deletePermission deletes the given permission.
+func deletePermission(db *sql.DB, id int) int64 {
+	stmt, err := db.Prepare("delete from user_to_group where id=?")
 	if err != nil {
 		log.Println(err)
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(userName, permissionName)
+	res, err := stmt.Exec(id)
 	if err != nil {
 		log.Println(err)
 	}
@@ -275,5 +275,6 @@ func deleteUserPermission(db *sql.DB, userName, permissionName string) int64 {
 	if err != nil {
 		log.Println(err)
 	}
+
 	return rowCnt
 }

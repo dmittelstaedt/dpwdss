@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.1] - 2019-??-??
 ### Added
-- REST API for reading users and permissions
+- API for reading users, groups and permissions
+- API for inserting, updating and deleting permissions
 
 [Unreleased]: https://link-to-current-head

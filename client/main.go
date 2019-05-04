@@ -10,6 +10,11 @@ func main() {
 // 	"testing"
 // )
 
+// Create substrings --> Move to Client logic
+// substrs := strings.Split(params["permission-name"], "-")
+// dir := strings.Join(substrs[:len(substrs)-1], "-")
+// rw := strings.Join(substrs[len(substrs)-1:], "")
+
 // func TestReadUsers(t *testing.T) {
 // 	client := &http.Client{}
 // 	req, err := http.NewRequest("GET", "http://localhost:8080/users", nil)
