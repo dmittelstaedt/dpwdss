@@ -26,22 +26,14 @@ func NewServer(user, password, dbName string) Server {
 
 // SetRoutes sets the routes for the server
 func (server *Server) SetRoutes() {
-	// TODO: json extension to path, e.g. /api/v1/users.json, /api/v1/users/luke.json
-	// TODO: at begining 3 Return Codes are enough:
-	// successful --> 200
-	// client-side error --> 400 bad request
-	// server-side error --> 500 internal server
-	// TODO: include message in body if failure
-	// TODO: get permissions with queries, e.g. /permissions?uname=luke;gname=d1-read
-	// TODO: validate user input in request bodies --> implement validator
 	subrouter := server.Router.PathPrefix("/api/v1").Subrouter()
 	subrouter.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
-	server.Router.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
-	server.Router.Methods("GET").Path("/users/{name}").Name("readUser").HandlerFunc(server.readUserHandler)
-	server.Router.Methods("GET").Path("/groups").Name("readGroups").HandlerFunc(server.readGroupsHandler)
-	server.Router.Methods("GET").Path("/groups/{name}").Name("readGroup").HandlerFunc(server.readGroupHandler)
-	server.Router.Methods("GET").Path("/permissions").Name("readPermissions").HandlerFunc(server.readPermissionsHandler)
-	server.Router.Methods("GET").Path("/permissions/{id}").Name("readPermission").HandlerFunc(server.readPermissionHandler)
+	subrouter.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
+	subrouter.Methods("GET").Path("/users/{name}").Name("readUser").HandlerFunc(server.readUserHandler)
+	subrouter.Methods("GET").Path("/groups").Name("readGroups").HandlerFunc(server.readGroupsHandler)
+	subrouter.Methods("GET").Path("/groups/{name}").Name("readGroup").HandlerFunc(server.readGroupHandler)
+	subrouter.Methods("GET").Path("/permissions").Name("readPermissions").HandlerFunc(server.readPermissionsHandler)
+	subrouter.Methods("GET").Path("/permissions/{id}").Name("readPermission").HandlerFunc(server.readPermissionHandler)
 
 	// Experimentell routes
 	server.Router.Methods("POST").Path("/update").Name("update").HandlerFunc(server.updateUserHandler)

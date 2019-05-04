@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -45,13 +46,25 @@ create table if not exists user_to_group (
   )
 `
 
+const pathPrefix = "/api/v1"
+
 var testServer Server
+var luke User
+var han User
+var d1Read Group
+var d1Write Group
+var p1 Permission
+var p2 Permission
 
 func TestMain(m *testing.M) {
 	testServer = NewServer("root", "david", "pwdss_test")
 	testServer.SetRoutes()
 
+	initializeStructs()
+
 	ensureTablesExist()
+
+	clearTables()
 
 	code := m.Run()
 
@@ -63,7 +76,7 @@ func TestMain(m *testing.M) {
 func TestReadEmptyUsers(t *testing.T) {
 	clearTables()
 
-	rr := executeRequest(t, "GET", "/users")
+	rr := executeRequest(t, "GET", "/users", nil)
 
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
@@ -79,24 +92,10 @@ func TestReadEmptyUsers(t *testing.T) {
 
 func TestReadUsers(t *testing.T) {
 	clearTables()
-	luke := User{
-		ID:        1,
-		FirstName: "Luke",
-		LastName:  "Skywalker",
-		Name:      "luke",
-		Role:      "app_user",
-	}
-	han := User{
-		ID:        2,
-		FirstName: "Han",
-		LastName:  "Solo",
-		Name:      "han",
-		Role:      "app_user",
-	}
 	addUserT(t, luke)
 	addUserT(t, han)
 
-	rr := executeRequest(t, "GET", "/users")
+	rr := executeRequest(t, "GET", "/users", nil)
 
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
@@ -113,23 +112,16 @@ func TestReadUsers(t *testing.T) {
 func TestReadNonExistentUser(t *testing.T) {
 	clearTables()
 
-	rr := executeRequest(t, "GET", "/users/test")
+	rr := executeRequest(t, "GET", "/users/test", nil)
 
 	checkResponseCode(t, http.StatusNotFound, rr.Code)
 }
 
 func TestReadUser(t *testing.T) {
 	clearTables()
-	luke := User{
-		ID:        1,
-		FirstName: "Luke",
-		LastName:  "Skywalker",
-		Name:      "luke",
-		Role:      "app_user",
-	}
 	addUserT(t, luke)
 
-	rr := executeRequest(t, "GET", "/users/luke")
+	rr := executeRequest(t, "GET", "/users/luke", nil)
 
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
@@ -139,7 +131,7 @@ func TestReadUser(t *testing.T) {
 	}
 
 	if user != luke {
-		t.Errorf("Expected user: %v. Got %v", luke, user)
+		t.Errorf("Expected user %v. Got %v", luke, user)
 	}
 }
 
@@ -154,7 +146,7 @@ func TestUpdateUser(t *testing.T) {
 func TestReadEmptyGroups(t *testing.T) {
 	clearTables()
 
-	rr := executeRequest(t, "GET", "/groups")
+	rr := executeRequest(t, "GET", "/groups", nil)
 
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
@@ -170,18 +162,10 @@ func TestReadEmptyGroups(t *testing.T) {
 
 func TestReadGroups(t *testing.T) {
 	clearTables()
-	d1Read := Group{
-		ID:   1,
-		Name: "d1-read",
-	}
-	d1Write := Group{
-		ID:   2,
-		Name: "d1-write",
-	}
 	addGroupT(t, d1Read)
 	addGroupT(t, d1Write)
 
-	rr := executeRequest(t, "GET", "/groups")
+	rr := executeRequest(t, "GET", "/groups", nil)
 
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
@@ -198,20 +182,16 @@ func TestReadGroups(t *testing.T) {
 func TestReadNonExistentGroup(t *testing.T) {
 	clearTables()
 
-	rr := executeRequest(t, "GET", "/groups/test")
+	rr := executeRequest(t, "GET", "/groups/test", nil)
 
 	checkResponseCode(t, http.StatusNotFound, rr.Code)
 }
 
 func TestReadGroup(t *testing.T) {
 	clearTables()
-	d1Read := Group{
-		ID:   1,
-		Name: "d1-read",
-	}
 	addGroupT(t, d1Read)
 
-	rr := executeRequest(t, "GET", "/groups/d1-read")
+	rr := executeRequest(t, "GET", "/groups/d1-read", nil)
 
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
@@ -221,40 +201,166 @@ func TestReadGroup(t *testing.T) {
 	}
 
 	if group != d1Read {
-		t.Errorf("Expected user: %v. Got %v", group, d1Read)
+		t.Errorf("Expected group %v. Got %v", d1Read, group)
 	}
 }
 
 func TestReadEmptyPermissions(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+
+	rr := executeRequest(t, "GET", "/permissions", nil)
+
+	checkResponseCode(t, http.StatusOK, rr.Code)
+
+	var permissions []Permission
+	if err := json.NewDecoder(rr.Body).Decode(&permissions); err != nil {
+		t.Logf("Error during parsing response body")
+	}
+
+	if len(permissions) != 0 {
+		t.Errorf("Expected number of groups %v, Got %v", 0, len(permissions))
+	}
 }
 
 func TestReadPermissions(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+	addUserT(t, luke)
+	addGroupT(t, d1Read)
+	addPermissionT(t, p1)
+
+	rr := executeRequest(t, "GET", "/permissions", nil)
+
+	checkResponseCode(t, http.StatusOK, rr.Code)
+
+	var permissions []Permission
+	if err := json.NewDecoder(rr.Body).Decode(&permissions); err != nil {
+		t.Logf("Error during parsing response body")
+	}
+
+	if len(permissions) != 1 {
+		t.Errorf("Expected number of permissions %v, Got %v", 1, len(permissions))
+	}
 }
 
 func TestReadNonExistentPermissions(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+
+	rr := executeRequest(t, "GET", "/permissions/36", nil)
+
+	checkResponseCode(t, http.StatusNotFound, rr.Code)
 }
 
 func TestReadPermission(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+	addUserT(t, luke)
+	addGroupT(t, d1Read)
+	addPermissionT(t, p1)
+
+	rr := executeRequest(t, "GET", "/permissions/1", nil)
+
+	checkResponseCode(t, http.StatusOK, rr.Code)
+
+	var permission Permission
+	if err := json.NewDecoder(rr.Body).Decode(&permission); err != nil {
+		t.Logf("Error during response body")
+	}
+
+	if permission != p1 {
+		t.Errorf("Expected permission %v, Got %v", p1, permission)
+	}
 }
 
 func TestUpdateNonExistentPermission(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+
+	body, err := json.Marshal(&p1)
+	if err != nil {
+		t.Logf("Error parsing request")
+	}
+	rr := executeRequest(t, "PUT", "/permissions/1", body)
+
+	checkResponseCode(t, http.StatusNotFound, rr.Code)
 }
 
 func TestUpdatePermission(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+	addUserT(t, luke)
+	addGroupT(t, d1Read)
+	addGroupT(t, d1Write)
+	addPermissionT(t, p1)
+
+	p1New := Permission{
+		ID:      p1.ID,
+		UserID:  p1.UserID,
+		GroupID: d1Write.ID,
+	}
+
+	body, err := json.Marshal(&p1New)
+	if err != nil {
+		t.Logf("Error parsing request")
+	}
+	rr := executeRequest(t, "PUT", "/permissions/1", body)
+
+	checkResponseCode(t, http.StatusOK, rr.Code)
 }
 
 func TestInsertPermission(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+	addUserT(t, luke)
+	addGroupT(t, d1Read)
+
+	body, err := json.Marshal(p1)
+	if err != nil {
+		t.Logf("Error parsing request")
+	}
+
+	rr := executeRequest(t, "POST", "/permissions", body)
+
+	checkResponseCode(t, http.StatusCreated, rr.Code)
 }
 
 func TestDeletePermission(t *testing.T) {
 	// TODO: Implement
+}
+
+func initializeStructs() {
+	luke = User{
+		ID:        1,
+		FirstName: "Luke",
+		LastName:  "Skywalker",
+		Name:      "luke",
+		Role:      "app_user",
+	}
+
+	han = User{
+		ID:        2,
+		FirstName: "Han",
+		LastName:  "Solo",
+		Name:      "han",
+		Role:      "app_user",
+	}
+
+	d1Read = Group{
+		ID:   1,
+		Name: "d1-read",
+	}
+
+	d1Write = Group{
+		ID:   2,
+		Name: "d1-write",
+	}
+
+	p1 = Permission{
+		ID:      1,
+		UserID:  1,
+		GroupID: 1,
+	}
+
+	p2 = Permission{
+		ID:      2,
+		UserID:  2,
+		GroupID: 2,
+	}
 }
 
 func ensureTablesExist() {
@@ -272,26 +378,32 @@ func ensureTablesExist() {
 func clearTables() {
 	testServer.DB.Exec("DELETE FROM users")
 	testServer.DB.Exec("DELETE FROM groups")
-	testServer.DB.Exec("DELETE FROM user_to_groups")
+	testServer.DB.Exec("DELETE FROM user_to_group")
 	testServer.DB.Exec("ALTER TABLE users AUTO_INCREMENT = 1")
 	testServer.DB.Exec("ALTER TABLE groups AUTO_INCREMENT = 1")
-	testServer.DB.Exec("ALTER TABLE user_to_groups AUTO_INCREMENT = 1")
+	testServer.DB.Exec("ALTER TABLE user_to_group AUTO_INCREMENT = 1")
 }
 
 func addUserT(t *testing.T, user User) {
 	if _, err := testServer.DB.Exec("insert into users (firstname, lastname, name, role) VALUES(?, ?, ?, ?)", user.FirstName, user.LastName, user.Name, user.Role); err != nil {
-		t.Logf("Error inserting user: %v", err)
+		t.Logf("Error inserting user %v", err)
 	}
 }
 
 func addGroupT(t *testing.T, group Group) {
 	if _, err := testServer.DB.Exec("insert into groups (name) values (?)", group.Name); err != nil {
-		t.Logf("Error inserting group: %v", err)
+		t.Logf("Error inserting group %v", err)
 	}
 }
 
-func executeRequest(t *testing.T, method, route string) *httptest.ResponseRecorder {
-	req, _ := http.NewRequest(method, route, nil)
+func addPermissionT(t *testing.T, permission Permission) {
+	if _, err := testServer.DB.Exec("insert into user_to_group (user_id, group_id) values (?,?)", permission.UserID, permission.GroupID); err != nil {
+		t.Logf("Error inserting permission %v", err)
+	}
+}
+
+func executeRequest(t *testing.T, method, route string, body []byte) *httptest.ResponseRecorder {
+	req, _ := http.NewRequest(method, pathPrefix+route, bytes.NewBuffer(body))
 	rr := httptest.NewRecorder()
 	testServer.Router.ServeHTTP(rr, req)
 	return rr
