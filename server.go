@@ -32,6 +32,7 @@ func (server *Server) SetRoutes() {
 	subrouter.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
 	subrouter.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
 	subrouter.Methods("GET").Path("/users/{name}").Name("readUser").HandlerFunc(server.readUserHandler)
+	subrouter.Methods("PUT").Path("/users/{name}").Name("updateUser").HandlerFunc(server.updateUserHandler)
 
 	// groups
 	subrouter.Methods("GET").Path("/groups").Name("readGroups").HandlerFunc(server.readGroupsHandler)

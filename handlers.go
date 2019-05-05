@@ -42,6 +42,33 @@ func (server *Server) readUserHandler(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, response)
 }
 
+// updatePermissionHandler handles requests for updateing a permission.
+func (server *Server) updateUserHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Request: " + r.URL.Path)
+	params := mux.Vars(r)
+
+	_, ok := readUser(server.DB, params["name"])
+	if !ok {
+		respondHeader(w, http.StatusNotFound)
+		return
+	}
+
+	var user User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		respondHeader(w, http.StatusBadRequest)
+		return
+	}
+
+	if rowCnt := updateUser(server.DB, user); rowCnt == 1 {
+		response, err := json.Marshal(user)
+		if err != nil {
+			log.Println(err)
+		}
+		respondJSON(w, http.StatusOK, response)
+		return
+	}
+}
+
 // readGroupsHandler handles requests for reading all group.
 func (server *Server) readGroupsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request: " + r.URL.Path)

@@ -128,11 +128,45 @@ func TestReadUser(t *testing.T) {
 }
 
 func TestUpdateNonExistentUser(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+
+	body, err := json.Marshal(&luke)
+	if err != nil {
+		t.Logf("Error marshaling request body")
+	}
+
+	rr := executeRequest(t, "PUT", "/users/test", body)
+
+	checkResponseCode(t, http.StatusNotFound, rr.Code)
 }
 
 func TestUpdateUser(t *testing.T) {
-	// TODO: Implement
+	clearTables()
+	addUserT(t, luke)
+
+	lukeNew := User{
+		ID:        luke.ID,
+		FirstName: luke.FirstName,
+		LastName:  luke.LastName,
+		Name:      luke.Name,
+		Role:      "app_admin",
+	}
+
+	body, err := json.Marshal(&lukeNew)
+	if err != nil {
+		t.Logf("Error marshaling request body")
+	}
+
+	rr := executeRequest(t, "PUT", "/users/luke", body)
+
+	checkResponseCode(t, http.StatusOK, rr.Code)
+
+	var user User
+	decodeResponse(t, rr.Body, &user)
+
+	if user != lukeNew {
+		t.Errorf("Expected user %v, Got %v", lukeNew, user)
+	}
 }
 
 func TestReadEmptyGroups(t *testing.T) {
@@ -285,7 +319,7 @@ func TestUpdateNonExistentPermission(t *testing.T) {
 
 	body, err := json.Marshal(&p1)
 	if err != nil {
-		t.Logf("Error parsing request")
+		t.Logf("Error marshaling request body")
 	}
 	rr := executeRequest(t, "PUT", "/permissions/1", body)
 
@@ -317,7 +351,7 @@ func TestUpdatePermission(t *testing.T) {
 
 	body, err := json.Marshal(&p1New)
 	if err != nil {
-		t.Logf("Error parsing request")
+		t.Logf("Error marshaling request body")
 	}
 	rr := executeRequest(t, "PUT", "/permissions/1", body)
 

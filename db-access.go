@@ -54,6 +54,27 @@ func readUser(db *sql.DB, userName string) (User, bool) {
 	return user, ok
 }
 
+// updateUser updates the given user.
+func updateUser(db *sql.DB, user User) int64 {
+	stmt, err := db.Prepare("update users set firstname=?, lastname=?, realm=?, role=? where id=?")
+	if err != nil {
+		log.Println(err)
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(user.FirstName, user.LastName, user.Realm, user.Role, user.ID)
+	if err != nil {
+		log.Println(err)
+	}
+
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		log.Println(err)
+	}
+
+	return rowCnt
+}
+
 // readUsers returns a slice with all users.
 func readGroups(db *sql.DB) []Group {
 	stmt, err := db.Prepare("select id, name from groups")
@@ -105,18 +126,9 @@ func readGroup(db *sql.DB, groupName string) (Group, bool) {
 // 	// insert into users (firstname, lastname, name, realm, role, permission, password, last_change_password) VALUES ('$firstName', '$lastName', '$username', '$realm', '$role', '$permission', '$passwordHashed', NOW())
 // }
 
-// func updateUser(firstName, lastName, userName, permission string) {
-// 	// update users set firstname='$firstName', lastname='$lastName', permission='$permission' where name='$username'
-// }
-
 // Remove existing user from table users.
 // func removeUser(userName string) {
 // 	// delete from users where name='$userName'
-// }
-
-// Update password of given user in table users.
-// func updatePassword(userName, currentPassword, newPassword string) {
-// 	// update users set password='$newPasswordHashed' where name='$username' and password='$currentPasswordHashed'
 // }
 
 // readPermissions returns all possible permissions.
@@ -168,54 +180,6 @@ func readPermission(db *sql.DB, permissionID int) (Permission, bool) {
 	return permission, ok
 }
 
-// readUserPermissions returns all permissions of given user.
-// func readUserPermissions(db *sql.DB, userName string) ([]Permission, error) {
-// 	stmt, err := db.Prepare("select id, name from groups where id in (select group_id from user_to_group where user_id=(select id from users where name=?))")
-// 	if err != nil {
-// 		log.Println(err)
-// 	}
-// 	defer stmt.Close()
-
-// 	rows, err := stmt.Query(userName)
-// 	if err != nil {
-// 		log.Println()
-// 	}
-// 	defer rows.Close()
-
-// 	var permissions []Permission
-// 	for rows.Next() {
-// 		var permission Permission
-// 		if err = rows.Scan(&permission.ID, &permission.Name); err != nil {
-// 			log.Println(err)
-// 		}
-// 		permissions = append(permissions, permission)
-// 	}
-
-// 	return permissions, nil
-// }
-
-// readUserPermission returns permission of given user and permission
-// func readUserPermission(db *sql.DB, userName, permissionName string) (Permission, bool) {
-// 	stmt, err := db.Prepare("select id, name from groups where id in (select group_id from user_to_group where user_id=(select id from users where name=?)) and name=?")
-// 	if err != nil {
-// 		log.Println(err)
-// 	}
-// 	defer stmt.Close()
-
-// 	var permission Permission
-// 	err = stmt.QueryRow(userName, permissionName).Scan(&permission.ID, &permission.Name)
-// 	if err != nil && err != sql.ErrNoRows {
-// 		log.Println(err)
-// 	}
-
-// 	ok := false
-// 	if err == nil {
-// 		ok = true
-// 	}
-
-// 	return permission, ok
-// }
-
 // insertPermission inserts a new permission with the given user_id and group_id.
 func insertPermission(db *sql.DB, permmission Permission) int64 {
 	stmt, err := db.Prepare("insert into user_to_group (user_id, group_id) values (?, ?)")
@@ -237,7 +201,7 @@ func insertPermission(db *sql.DB, permmission Permission) int64 {
 	return rowCnt
 }
 
-// updatePermission updates the old permission with tne new permission. Returns number of affecetd rows.
+// updatePermission updates the old permission with the new permission. Returns number of affecetd rows.
 func updatePermission(db *sql.DB, oldPermission, newPermission Permission) int64 {
 	stmt, err := db.Prepare("update user_to_group set user_id=?, group_id=? where id=?")
 	if err != nil {
