@@ -79,9 +79,7 @@ func TestReadEmptyUsers(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var users []User
-	if err := json.NewDecoder(rr.Body).Decode(&users); err != nil {
-		t.Log("Error during parsing respone body")
-	}
+	decodeResponse(t, rr.Body, &users)
 
 	if len(users) != 0 {
 		t.Errorf("Expected number of users %v, Got %v", 0, len(users))
@@ -98,9 +96,7 @@ func TestReadUsers(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var users []User
-	if err := json.NewDecoder(rr.Body).Decode(&users); err != nil {
-		t.Log("Error during parsing respone body")
-	}
+	decodeResponse(t, rr.Body, &users)
 
 	if len(users) != 2 {
 		t.Errorf("Expected number of users %v, Got %v", 2, len(users))
@@ -124,9 +120,7 @@ func TestReadUser(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var user User
-	if err := json.NewDecoder(rr.Body).Decode(&user); err != nil {
-		t.Log("Error during parsing respone body")
-	}
+	decodeResponse(t, rr.Body, &user)
 
 	if user != luke {
 		t.Errorf("Expected user %v. Got %v", luke, user)
@@ -149,9 +143,7 @@ func TestReadEmptyGroups(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var groups []Group
-	if err := json.NewDecoder(rr.Body).Decode(&groups); err != nil {
-		t.Log("Error during parsing respone body")
-	}
+	decodeResponse(t, rr.Body, &groups)
 
 	if len(groups) != 0 {
 		t.Errorf("Expected number of groups %v, Got %v", 0, len(groups))
@@ -168,9 +160,7 @@ func TestReadGroups(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var groups []Group
-	if err := json.NewDecoder(rr.Body).Decode(&groups); err != nil {
-		t.Log("Error during parsing respone body")
-	}
+	decodeResponse(t, rr.Body, &groups)
 
 	if len(groups) != 2 {
 		t.Errorf("Expected number of groups %v, Got %v", 2, len(groups))
@@ -194,9 +184,7 @@ func TestReadGroup(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var group Group
-	if err := json.NewDecoder(rr.Body).Decode(&group); err != nil {
-		t.Log("Error during parsing respone body")
-	}
+	decodeResponse(t, rr.Body, &group)
 
 	if group != d1Read {
 		t.Errorf("Expected group %v. Got %v", d1Read, group)
@@ -211,9 +199,7 @@ func TestReadEmptyPermissions(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var permissions []Permission
-	if err := json.NewDecoder(rr.Body).Decode(&permissions); err != nil {
-		t.Logf("Error during parsing response body")
-	}
+	decodeResponse(t, rr.Body, &permissions)
 
 	if len(permissions) != 0 {
 		t.Errorf("Expected number of groups %v, Got %v", 0, len(permissions))
@@ -231,9 +217,7 @@ func TestReadPermissions(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var permissions []Permission
-	if err := json.NewDecoder(rr.Body).Decode(&permissions); err != nil {
-		t.Logf("Error during parsing response body")
-	}
+	decodeResponse(t, rr.Body, &permissions)
 
 	if len(permissions) != 1 {
 		t.Errorf("Expected number of permissions %v, Got %v", 1, len(permissions))
@@ -267,9 +251,7 @@ func TestReadPermission(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var permission Permission
-	if err := json.NewDecoder(rr.Body).Decode(&permission); err != nil {
-		t.Logf("Error during response body")
-	}
+	decodeResponse(t, rr.Body, &permission)
 
 	if permission != p1 {
 		t.Errorf("Expected permission %v, Got %v", p1, permission)
@@ -291,9 +273,7 @@ func TestInsertPermission(t *testing.T) {
 	checkResponseCode(t, http.StatusCreated, rr.Code)
 
 	var permission Permission
-	if err := json.NewDecoder(rr.Body).Decode(&permission); err != nil {
-		t.Logf("Error parsing response body")
-	}
+	decodeResponse(t, rr.Body, &permission)
 
 	if permission != p1 {
 		t.Errorf("Expected permission %v, Got %v", p1, permission)
@@ -344,9 +324,7 @@ func TestUpdatePermission(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
 	var permission Permission
-	if err := json.NewDecoder(rr.Body).Decode(&permission); err != nil {
-		t.Logf("Error parsing response body")
-	}
+	decodeResponse(t, rr.Body, &permission)
 
 	if permission != p1New {
 		t.Errorf("Expected permission %v, Got %v", p1New, permission)
@@ -472,5 +450,11 @@ func executeRequest(t *testing.T, method, route string, body []byte) *httptest.R
 func checkResponseCode(t *testing.T, expectedCode, actualCode int) {
 	if actualCode != expectedCode {
 		t.Errorf("Expected response code %v. Got %v", expectedCode, actualCode)
+	}
+}
+
+func decodeResponse(t *testing.T, body *bytes.Buffer, v interface{}) {
+	if err := json.NewDecoder(body).Decode(v); err != nil {
+		t.Log("Error during parsing respone body")
 	}
 }
