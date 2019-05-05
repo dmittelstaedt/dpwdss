@@ -9,7 +9,7 @@ import (
 
 // readUsers returns a slice with all users.
 func readUsers(db *sql.DB) []User {
-	stmt, err := db.Prepare("select id, firstname, lastname, name, role from users")
+	stmt, err := db.Prepare("select id, firstname, lastname, name, realm, role, password from users")
 	if err != nil {
 		log.Println(err)
 	}
@@ -24,7 +24,7 @@ func readUsers(db *sql.DB) []User {
 	var users []User
 	for rows.Next() {
 		var user User
-		if err = rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Name, &user.Role); err != nil {
+		if err = rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Name, &user.Realm, &user.Role, &user.Password); err != nil {
 			log.Println(err)
 		}
 		users = append(users, user)
@@ -34,14 +34,14 @@ func readUsers(db *sql.DB) []User {
 
 // readUser returns user struct with all information.
 func readUser(db *sql.DB, userName string) (User, bool) {
-	stmt, err := db.Prepare("select id, firstname, lastname, name, role from users where name=? limit 1")
+	stmt, err := db.Prepare("select id, firstname, lastname, name, realm, role, password from users where name=? limit 1")
 	if err != nil {
 		log.Println(err)
 	}
 	defer stmt.Close()
 
 	var user User
-	err = stmt.QueryRow(userName).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Name, &user.Role)
+	err = stmt.QueryRow(userName).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Name, &user.Realm, &user.Role, &user.Password)
 	if err != nil && err != sql.ErrNoRows {
 		log.Println(err)
 	}
@@ -56,13 +56,13 @@ func readUser(db *sql.DB, userName string) (User, bool) {
 
 // updateUser updates the given user.
 func updateUser(db *sql.DB, user User) int64 {
-	stmt, err := db.Prepare("update users set firstname=?, lastname=?, realm=?, role=? where id=?")
+	stmt, err := db.Prepare("update users set firstname=?, lastname=?, realm=?, role=?, password=? where id=?")
 	if err != nil {
 		log.Println(err)
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(user.FirstName, user.LastName, user.Realm, user.Role, user.ID)
+	res, err := stmt.Exec(user.FirstName, user.LastName, user.Realm, user.Role, user.Password, user.ID)
 	if err != nil {
 		log.Println(err)
 	}

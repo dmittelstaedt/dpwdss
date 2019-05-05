@@ -149,7 +149,9 @@ func TestUpdateUser(t *testing.T) {
 		FirstName: luke.FirstName,
 		LastName:  luke.LastName,
 		Name:      luke.Name,
-		Role:      "app_admin",
+		Realm:     luke.Realm,
+		Role:      luke.Role,
+		Password:  "skywalker",
 	}
 
 	body, err := json.Marshal(&lukeNew)
@@ -401,7 +403,9 @@ func initializeStructs() {
 		FirstName: "Luke",
 		LastName:  "Skywalker",
 		Name:      "luke",
+		Realm:     "share",
 		Role:      "app_user",
+		Password:  "luke",
 	}
 
 	han = User{
@@ -409,7 +413,9 @@ func initializeStructs() {
 		FirstName: "Han",
 		LastName:  "Solo",
 		Name:      "han",
+		Realm:     "share",
 		Role:      "app_user",
+		Password:  "han",
 	}
 
 	d1Read = Group{
@@ -457,7 +463,7 @@ func clearTables() {
 }
 
 func addUserT(t *testing.T, user User) {
-	if _, err := testServer.DB.Exec("insert into users (firstname, lastname, name, role) VALUES(?, ?, ?, ?)", user.FirstName, user.LastName, user.Name, user.Role); err != nil {
+	if _, err := testServer.DB.Exec("insert into users (firstname, lastname, name, realm, role, password) VALUES(?, ?, ?, ?, ?, ?)", user.FirstName, user.LastName, user.Name, user.Realm, user.Role, user.Password); err != nil {
 		t.Logf("Error inserting user %v", err)
 	}
 }
