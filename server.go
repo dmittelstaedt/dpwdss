@@ -30,7 +30,7 @@ func (server *Server) SetRoutes() {
 
 	// users
 	subrouter.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
-	subrouter.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
+	subrouter.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler).Queries("name", "{name}")
 	subrouter.Methods("GET").Path("/users/{id}").Name("readUser").HandlerFunc(server.readUserHandler)
 	subrouter.Methods("PUT").Path("/users/{id}").Name("updateUser").HandlerFunc(server.updateUserHandler)
 

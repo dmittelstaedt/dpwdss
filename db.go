@@ -32,6 +32,31 @@ func readUsers(db *sql.DB) []User {
 	return users
 }
 
+// readUsers returns a slice with all users based on the given name.
+func readUsersWhereName(db *sql.DB, name string) []User {
+	stmt, err := db.Prepare("select id, firstname, lastname, name, realm, role, password from users where name=?")
+	if err != nil {
+		log.Println(err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(name)
+	if err != nil {
+		log.Println(err)
+	}
+	defer rows.Close()
+
+	var users []User
+	for rows.Next() {
+		var user User
+		if err = rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Name, &user.Realm, &user.Role, &user.Password); err != nil {
+			log.Println(err)
+		}
+		users = append(users, user)
+	}
+	return users
+}
+
 // readUser returns user struct with all information.
 func readUser(db *sql.DB, id int) (User, bool) {
 	stmt, err := db.Prepare("select id, firstname, lastname, name, realm, role, password from users where id=? limit 1")

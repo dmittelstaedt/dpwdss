@@ -103,6 +103,23 @@ func TestReadUsers(t *testing.T) {
 	}
 }
 
+func TestReadUsersWhereName(t *testing.T) {
+	clearTables()
+	addUserT(t, luke)
+	addUserT(t, han)
+
+	rr := executeRequest(t, "GET", "/users?name=luke", nil)
+
+	checkResponseCode(t, http.StatusOK, rr.Code)
+
+	var users []User
+	decodeResponse(t, rr.Body, &users)
+
+	if len(users) != 1 {
+		t.Errorf("Expected number of users %v, Got %v", 1, len(users))
+	}
+}
+
 func TestReadNonIDUser(t *testing.T) {
 	clearTables()
 

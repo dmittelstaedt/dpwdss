@@ -19,5 +19,9 @@ func respondHeader(w http.ResponseWriter, httpCode int) {
 
 // logRequest logs a request.
 func logRequest(r *http.Request) {
-	log.Println("Request: " + "[" + r.Method + "] " + r.URL.Path)
+	if r.URL.RawQuery == "" {
+		log.Println("Request: " + "[" + r.Method + "] " + r.URL.Path)
+	} else {
+		log.Println("Request: " + "[" + r.Method + "] " + r.URL.Path + "?" + r.URL.RawQuery)
+	}
 }

@@ -12,7 +12,14 @@ import (
 // readUsersHandler handles requests for reading all users.
 func (server *Server) readUsersHandler(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
-	users := readUsers(server.DB)
+	name := r.URL.Query().Get("name")
+
+	var users []User
+	if name == "" {
+		users = readUsers(server.DB)
+	} else {
+		users = readUsersWhereName(server.DB, name)
+	}
 
 	response, err := json.Marshal(users)
 	if err != nil {
