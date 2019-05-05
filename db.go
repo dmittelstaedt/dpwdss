@@ -33,15 +33,15 @@ func readUsers(db *sql.DB) []User {
 }
 
 // readUser returns user struct with all information.
-func readUser(db *sql.DB, userName string) (User, bool) {
-	stmt, err := db.Prepare("select id, firstname, lastname, name, realm, role, password from users where name=? limit 1")
+func readUser(db *sql.DB, id int) (User, bool) {
+	stmt, err := db.Prepare("select id, firstname, lastname, name, realm, role, password from users where id=? limit 1")
 	if err != nil {
 		log.Println(err)
 	}
 	defer stmt.Close()
 
 	var user User
-	err = stmt.QueryRow(userName).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Name, &user.Realm, &user.Role, &user.Password)
+	err = stmt.QueryRow(id).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Name, &user.Realm, &user.Role, &user.Password)
 	if err != nil && err != sql.ErrNoRows {
 		log.Println(err)
 	}
@@ -100,15 +100,15 @@ func readGroups(db *sql.DB) []Group {
 	return groups
 }
 
-func readGroup(db *sql.DB, groupName string) (Group, bool) {
-	stmt, err := db.Prepare("select id, name from groups where name=?")
+func readGroup(db *sql.DB, id int) (Group, bool) {
+	stmt, err := db.Prepare("select id, name from groups where id=?")
 	if err != nil {
 		log.Println(err)
 	}
 	defer stmt.Close()
 
 	var group Group
-	err = stmt.QueryRow(groupName).Scan(&group.ID, &group.Name)
+	err = stmt.QueryRow(id).Scan(&group.ID, &group.Name)
 	if err != nil && err != sql.ErrNoRows {
 		log.Println(err)
 	}

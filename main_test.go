@@ -103,10 +103,18 @@ func TestReadUsers(t *testing.T) {
 	}
 }
 
-func TestReadNonExistentUser(t *testing.T) {
+func TestReadNonIDUser(t *testing.T) {
 	clearTables()
 
 	rr := executeRequest(t, "GET", "/users/test", nil)
+
+	checkResponseCode(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestReadNonExistentUser(t *testing.T) {
+	clearTables()
+
+	rr := executeRequest(t, "GET", "/users/36", nil)
 
 	checkResponseCode(t, http.StatusNotFound, rr.Code)
 }
@@ -115,7 +123,7 @@ func TestReadUser(t *testing.T) {
 	clearTables()
 	addUserT(t, luke)
 
-	rr := executeRequest(t, "GET", "/users/luke", nil)
+	rr := executeRequest(t, "GET", "/users/1", nil)
 
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
@@ -127,6 +135,19 @@ func TestReadUser(t *testing.T) {
 	}
 }
 
+func TestUpdateNonIDUser(t *testing.T) {
+	clearTables()
+
+	body, err := json.Marshal(&luke)
+	if err != nil {
+		t.Logf("Error marhaling request body")
+	}
+
+	rr := executeRequest(t, "PUT", "/users/test", body)
+
+	checkResponseCode(t, http.StatusBadRequest, rr.Code)
+}
+
 func TestUpdateNonExistentUser(t *testing.T) {
 	clearTables()
 
@@ -135,7 +156,7 @@ func TestUpdateNonExistentUser(t *testing.T) {
 		t.Logf("Error marshaling request body")
 	}
 
-	rr := executeRequest(t, "PUT", "/users/test", body)
+	rr := executeRequest(t, "PUT", "/users/36", body)
 
 	checkResponseCode(t, http.StatusNotFound, rr.Code)
 }
@@ -159,7 +180,7 @@ func TestUpdateUser(t *testing.T) {
 		t.Logf("Error marshaling request body")
 	}
 
-	rr := executeRequest(t, "PUT", "/users/luke", body)
+	rr := executeRequest(t, "PUT", "/users/1", body)
 
 	checkResponseCode(t, http.StatusOK, rr.Code)
 
@@ -203,10 +224,18 @@ func TestReadGroups(t *testing.T) {
 	}
 }
 
-func TestReadNonExistentGroup(t *testing.T) {
+func TestReadNonIDGroup(t *testing.T) {
 	clearTables()
 
 	rr := executeRequest(t, "GET", "/groups/test", nil)
+
+	checkResponseCode(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestReadNonExistentGroup(t *testing.T) {
+	clearTables()
+
+	rr := executeRequest(t, "GET", "/groups/36", nil)
 
 	checkResponseCode(t, http.StatusNotFound, rr.Code)
 }
@@ -215,7 +244,7 @@ func TestReadGroup(t *testing.T) {
 	clearTables()
 	addGroupT(t, d1Read)
 
-	rr := executeRequest(t, "GET", "/groups/d1-read", nil)
+	rr := executeRequest(t, "GET", "/groups/1", nil)
 
 	checkResponseCode(t, http.StatusOK, rr.Code)
 

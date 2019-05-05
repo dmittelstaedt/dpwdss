@@ -31,12 +31,12 @@ func (server *Server) SetRoutes() {
 	// users
 	subrouter.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
 	subrouter.Methods("GET").Path("/users").Name("readUsers").HandlerFunc(server.readUsersHandler)
-	subrouter.Methods("GET").Path("/users/{name}").Name("readUser").HandlerFunc(server.readUserHandler)
-	subrouter.Methods("PUT").Path("/users/{name}").Name("updateUser").HandlerFunc(server.updateUserHandler)
+	subrouter.Methods("GET").Path("/users/{id}").Name("readUser").HandlerFunc(server.readUserHandler)
+	subrouter.Methods("PUT").Path("/users/{id}").Name("updateUser").HandlerFunc(server.updateUserHandler)
 
 	// groups
 	subrouter.Methods("GET").Path("/groups").Name("readGroups").HandlerFunc(server.readGroupsHandler)
-	subrouter.Methods("GET").Path("/groups/{name}").Name("readGroup").HandlerFunc(server.readGroupHandler)
+	subrouter.Methods("GET").Path("/groups/{id}").Name("readGroup").HandlerFunc(server.readGroupHandler)
 
 	// permissions
 	subrouter.Methods("GET").Path("/permissions").Name("readPermissions").HandlerFunc(server.readPermissionsHandler)

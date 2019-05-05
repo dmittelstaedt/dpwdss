@@ -11,8 +11,7 @@ import (
 
 // readUsersHandler handles requests for reading all users.
 func (server *Server) readUsersHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request: " + r.URL.Path)
-
+	logRequest(r)
 	users := readUsers(server.DB)
 
 	response, err := json.Marshal(users)
@@ -25,10 +24,17 @@ func (server *Server) readUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 // readUserHandler handles requests for reading details of specific user.
 func (server *Server) readUserHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request: " + r.URL.Path)
+	logRequest(r)
 	params := mux.Vars(r)
 
-	user, ok := readUser(server.DB, params["name"])
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		log.Println(err)
+		respondHeader(w, http.StatusBadRequest)
+		return
+	}
+
+	user, ok := readUser(server.DB, id)
 	if !ok {
 		respondHeader(w, http.StatusNotFound)
 		return
@@ -44,10 +50,17 @@ func (server *Server) readUserHandler(w http.ResponseWriter, r *http.Request) {
 
 // updatePermissionHandler handles requests for updateing a permission.
 func (server *Server) updateUserHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request: " + r.URL.Path)
+	logRequest(r)
 	params := mux.Vars(r)
 
-	_, ok := readUser(server.DB, params["name"])
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		log.Println(err)
+		respondHeader(w, http.StatusBadRequest)
+		return
+	}
+
+	_, ok := readUser(server.DB, id)
 	if !ok {
 		respondHeader(w, http.StatusNotFound)
 		return
@@ -71,7 +84,7 @@ func (server *Server) updateUserHandler(w http.ResponseWriter, r *http.Request) 
 
 // readGroupsHandler handles requests for reading all group.
 func (server *Server) readGroupsHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request: " + r.URL.Path)
+	logRequest(r)
 
 	groups := readGroups(server.DB)
 
@@ -85,10 +98,17 @@ func (server *Server) readGroupsHandler(w http.ResponseWriter, r *http.Request) 
 
 // readUserHandler handles requests for reading details of specific group.
 func (server *Server) readGroupHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request: " + r.URL.Path)
+	logRequest(r)
 	params := mux.Vars(r)
 
-	group, ok := readGroup(server.DB, params["name"])
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		log.Println(err)
+		respondHeader(w, http.StatusBadRequest)
+		return
+	}
+
+	group, ok := readGroup(server.DB, id)
 	if !ok {
 		respondHeader(w, http.StatusNotFound)
 		return
@@ -104,7 +124,7 @@ func (server *Server) readGroupHandler(w http.ResponseWriter, r *http.Request) {
 
 // readPermissionsHandler hanldes requests for reading all existing permissions.
 func (server *Server) readPermissionsHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request: " + r.URL.Path)
+	logRequest(r)
 
 	permissions, err := readPermissions(server.DB)
 	if err != nil {
@@ -121,7 +141,7 @@ func (server *Server) readPermissionsHandler(w http.ResponseWriter, r *http.Requ
 
 // readPermissionHandler handles requests for reading permission for given id.
 func (server *Server) readPermissionHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request: " + r.URL.Path)
+	logRequest(r)
 	params := mux.Vars(r)
 
 	id, err := strconv.Atoi(params["id"])
@@ -147,7 +167,7 @@ func (server *Server) readPermissionHandler(w http.ResponseWriter, r *http.Reque
 
 // insertPermissionHandler handles requests for inserting a permission.
 func (server *Server) insertPermissionHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request: " + r.URL.Path)
+	logRequest(r)
 
 	var permission Permission
 	if err := json.NewDecoder(r.Body).Decode(&permission); err != nil {
@@ -167,7 +187,7 @@ func (server *Server) insertPermissionHandler(w http.ResponseWriter, r *http.Req
 
 // updatePermissionHandler handles requests for updateing a permission.
 func (server *Server) updatePermissionHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request: " + r.URL.Path)
+	logRequest(r)
 	params := mux.Vars(r)
 
 	id, err := strconv.Atoi(params["id"])
@@ -201,7 +221,7 @@ func (server *Server) updatePermissionHandler(w http.ResponseWriter, r *http.Req
 
 // deletePermissionHandler handles requests for deleting a permission.
 func (server *Server) deletePermissionHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Request: " + r.URL.Path)
+	logRequest(r)
 	params := mux.Vars(r)
 
 	id, err := strconv.Atoi(params["id"])
