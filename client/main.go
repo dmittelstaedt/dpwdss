@@ -47,7 +47,7 @@ func executeRequest(method, url string) *http.Response {
 	return resp
 }
 
-func getUsers() []User {
+func readUsers() []User {
 	resp := executeRequest("GET", "http://localhost:8080/api/v1/users")
 	defer resp.Body.Close()
 
@@ -59,7 +59,7 @@ func getUsers() []User {
 	return users
 }
 
-func getUser(id int) User {
+func readUser(id int) User {
 	resp := executeRequest("GET", "http://localhost:8080/api/v1/users/"+strconv.Itoa(id))
 	defer resp.Body.Close()
 
@@ -72,10 +72,10 @@ func getUser(id int) User {
 }
 
 func main() {
-	users := getUsers()
+	users := readUsers()
 	printUsers(users)
 
-	user := getUser(1)
+	user := readUser(1)
 	printUser(user)
 }
 
