@@ -1,52 +1,64 @@
 package main
 
+import (
+	"flag"
+	"log"
+	"strconv"
+)
+
 const apiEndpoint = "http://localhost:8080/api/v1/"
 
-func getUserPermissions() {
-	user := readUser(4)
-	permissions := readPermissions()
+var userName string
+var groupName string
+var setPermission bool
+var resetPassword bool
+var version bool
 
-	var userPermissions []Permission
+// TODO: Check if flags are visit
+// TODO: Version, Git Commit and Build Date as flag
+// TODO: all users for specific group
+// TODO: read Groups by name --> add to API
 
-	for _, permission := range permissions {
-		if permission.UserID == user.ID {
-			userPermissions = append(userPermissions, permission)
-		}
-	}
-
-	var permissionsOut []PermissionOut
-	for _, permission := range userPermissions {
-		group := readGroup(permission.GroupID)
-		permissionsOut = append(permissionsOut, PermissionOut{
-			ID:        permission.ID,
-			UserName:  user.Name,
-			GroupName: group.Name,
-		})
-	}
-	printPermissions(permissionsOut)
+// Check if flags are correctly set, e.g. resetPassword in combination with groupName is not allowed
+func checkCombination() bool {
+	return false
 }
 
 func main() {
-	// users := readUsers()
-	// printUsers(users)
+	flag.StringVar(&userName, "user", "", "Name of the user. Printing all users with value all.")
+	flag.StringVar(&groupName, "group", "", "Name of the group. Printing all groups with value all.")
+	flag.Parse()
 
-	// fmt.Println("")
+	if userName == "all" && groupName == "" {
+		users := readUsers()
+		printUsers(users)
+	}
 
-	// user := readUser(1)
-	// printUser(user)
+	if userName != "" && userName != "all" && groupName == "" {
+		user, ok := readUserByName(userName)
+		if ok {
+			printUser(user)
+		}
+	}
 
-	// fmt.Println("")
+	if userName == "" && groupName == "all" {
+		groups := readGroups()
+		printGroups(groups)
+	}
 
-	// groups := readGroups()
-	// printGroups(groups)
+	if userName == "" && groupName != "" && groupName != "all" {
+		groupID, err := strconv.Atoi(groupName)
+		if err != nil {
+			log.Println(err)
+		}
+		group := readGroup(groupID)
+		printGroup(group)
+	}
 
-	// fmt.Println("")
-	// group := readGroup(1)
-	// printGroup(group)
-
-	// fmt.Println("")
-
-	getUserPermissions()
+	if userName != "" && userName != "all" && groupName == "all" {
+		permissionsOut := readPermissionsByUser(userName)
+		printPermissions(permissionsOut)
+	}
 }
 
 // Create substrings --> Move to Client logic
