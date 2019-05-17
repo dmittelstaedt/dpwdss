@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+const apiEndpoint = "http://localhost:8080/api/v1/"
+
 func readUsers() []User {
 	resp := sendRequest("GET", apiEndpoint+"users")
 	defer resp.Body.Close()

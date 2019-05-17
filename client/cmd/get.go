@@ -18,15 +18,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package main
+package cmd
 
-import "github.com/dmittelstaedt/dpwdss/client/cmd"
+import (
+	"github.com/spf13/cobra"
+)
 
-// TODO: Check if flags are visit
-// TODO: Version, Git Commit and Build Date as flag
-// TODO: all users for specific group
-// TODO: read Groups by name --> add to API
+// getCmd represents the get command
+var getCmd = &cobra.Command{
+	Use:   "get",
+	Short: "Gets users, groups and permissions.",
+	Long:  `Gets users, groups and permissions from dshare server.`,
+	// Run: func(cmd *cobra.Command, args []string) {
+	// },
+}
 
-func main() {
-	cmd.Execute()
+func init() {
+	rootCmd.AddCommand(getCmd)
+
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// getCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// getCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
