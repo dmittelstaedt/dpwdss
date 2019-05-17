@@ -1,19 +1,22 @@
-package main
+package logic
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/dmittelstaedt/dpwdss/client/models"
 )
 
 const apiEndpoint = "http://localhost:8080/api/v1/"
 
-func readUsers() []User {
+// ReadUsers returns all users.
+func ReadUsers() []models.User {
 	resp := sendRequest("GET", apiEndpoint+"users")
 	defer resp.Body.Close()
 
-	var users []User
+	var users []models.User
 	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
 		log.Println(err)
 	}
@@ -21,11 +24,12 @@ func readUsers() []User {
 	return users
 }
 
-func readUser(id int) User {
+// ReadUser returns user for given ID.
+func ReadUser(id int) models.User {
 	resp := sendRequest("GET", apiEndpoint+"users/"+strconv.Itoa(id))
 	defer resp.Body.Close()
 
-	var user User
+	var user models.User
 	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
 		log.Println(err)
 	}
@@ -33,11 +37,12 @@ func readUser(id int) User {
 	return user
 }
 
-func readUserByName(name string) (User, bool) {
+// ReadUserByName returns user for given name.
+func ReadUserByName(name string) (models.User, bool) {
 	resp := sendRequest("GET", apiEndpoint+"users?name="+name)
 	defer resp.Body.Close()
 
-	var users []User
+	var users []models.User
 	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
 		log.Println(err)
 	}
@@ -46,36 +51,39 @@ func readUserByName(name string) (User, bool) {
 		return users[0], true
 	}
 
-	return User{}, false
+	return models.User{}, false
 }
 
-func readGroups() []Group {
+// ReadGroups returns all groups.
+func ReadGroups() []models.Group {
 	resp := sendRequest("GET", apiEndpoint+"groups")
 	defer resp.Body.Close()
 
-	var groups []Group
+	var groups []models.Group
 	if err := json.NewDecoder(resp.Body).Decode(&groups); err != nil {
 		log.Println(err)
 	}
 	return groups
 }
 
-func readGroup(id int) Group {
+// ReadGroup returns group for given ID.
+func readGroup(id int) models.Group {
 	resp := sendRequest("GET", apiEndpoint+"groups/"+strconv.Itoa(id))
 	defer resp.Body.Close()
 
-	var group Group
+	var group models.Group
 	if err := json.NewDecoder(resp.Body).Decode(&group); err != nil {
 		log.Println(err)
 	}
 	return group
 }
 
-func readPermissions() []Permission {
+// ReadPermissions returns all permissions.
+func ReadPermissions() []models.Permission {
 	resp := sendRequest("GET", apiEndpoint+"permissions")
 	defer resp.Body.Close()
 
-	var permissions []Permission
+	var permissions []models.Permission
 	if err := json.NewDecoder(resp.Body).Decode(&permissions); err != nil {
 		log.Println(err)
 	}
@@ -83,11 +91,12 @@ func readPermissions() []Permission {
 	return permissions
 }
 
-func readPermissionsByUser(name string) []PermissionOut {
-	user, _ := readUserByName(name)
-	permissions := readPermissions()
+// ReadPermissionsByUser returns all permissions for user with given name.
+func ReadPermissionsByUser(name string) []models.PermissionOut {
+	user, _ := ReadUserByName(name)
+	permissions := ReadPermissions()
 
-	var userPermissions []Permission
+	var userPermissions []models.Permission
 
 	for _, permission := range permissions {
 		if permission.UserID == user.ID {
@@ -95,10 +104,10 @@ func readPermissionsByUser(name string) []PermissionOut {
 		}
 	}
 
-	var permissionsOut []PermissionOut
+	var permissionsOut []models.PermissionOut
 	for _, permission := range userPermissions {
 		group := readGroup(permission.GroupID)
-		permissionsOut = append(permissionsOut, PermissionOut{
+		permissionsOut = append(permissionsOut, models.PermissionOut{
 			ID:        permission.ID,
 			UserName:  user.Name,
 			GroupName: group.Name,
@@ -107,25 +116,29 @@ func readPermissionsByUser(name string) []PermissionOut {
 	return permissionsOut
 }
 
-func readPermission(id int) Permission {
+// ReadPermission returns permission for given ID.
+func ReadPermission(id int) models.Permission {
 	resp := sendRequest("GET", apiEndpoint+"permissions"+strconv.Itoa(id))
 	defer resp.Body.Close()
 
-	var permission Permission
+	var permission models.Permission
 	if err := json.NewDecoder(resp.Body).Decode(&permission); err != nil {
 		log.Println(err)
 	}
 	return permission
 }
 
-func updatePermission(id int) Permission {
-	return Permission{}
+// UpdatePermission updates permission for given ID.
+func UpdatePermission(id int) models.Permission {
+	return models.Permission{}
 }
 
-func createPermission() Permission {
-	return Permission{}
+// CreatePermission creates new permission.
+func CreatePermission() models.Permission {
+	return models.Permission{}
 }
 
+// sendRequest sends request for given method and URL.
 func sendRequest(method, url string) *http.Response {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, nil)

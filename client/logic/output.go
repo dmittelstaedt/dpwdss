@@ -1,17 +1,19 @@
-package main
+package logic
 
 import (
 	"fmt"
 	"os"
 	"strconv"
 	"text/tabwriter"
+
+	"github.com/dmittelstaedt/dpwdss/client/models"
 )
 
 const userHeader = "ID\tFIRSTNAME\tLASTNAME\tNAME\tROLE"
 const groupHeader = "ID\tNAME"
 const permissionHeader = "ID\tUSER\tGROUP"
 
-func printUser(user User) {
+func printUser(user models.User) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, userHeader)
@@ -20,7 +22,7 @@ func printUser(user User) {
 	w.Flush()
 }
 
-func printUsers(users []User) {
+func printUsers(users []models.User) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, userHeader)
@@ -31,7 +33,7 @@ func printUsers(users []User) {
 	w.Flush()
 }
 
-func printGroup(group Group) {
+func printGroup(group models.Group) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, groupHeader)
@@ -40,7 +42,7 @@ func printGroup(group Group) {
 	w.Flush()
 }
 
-func printGroups(groups []Group) {
+func printGroups(groups []models.Group) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, groupHeader)
@@ -51,7 +53,7 @@ func printGroups(groups []Group) {
 	w.Flush()
 }
 
-func printPermission(permission PermissionOut) {
+func printPermission(permission models.PermissionOut) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, permissionHeader)
@@ -60,7 +62,7 @@ func printPermission(permission PermissionOut) {
 	w.Flush()
 }
 
-func printPermissions(permissions []PermissionOut) {
+func printPermissions(permissions []models.PermissionOut) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, permissionHeader)
