@@ -30,6 +30,7 @@ import (
 )
 
 var cfgFile string
+var version bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -41,6 +42,11 @@ get users, groups and permissions.`,
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) {
 	// },
+	Run: func(cmd *cobra.Command, args []string) {
+		if cmd.Flags().Changed("version") {
+			fmt.Println("Version 0.0.1")
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -59,6 +65,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.client.yaml)")
+	rootCmd.Flags().BoolVarP(&version, "version", "v", false, "Prints version")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

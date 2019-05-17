@@ -21,7 +21,7 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/dmittelstaedt/dpwdss/client/logic"
 	"github.com/spf13/cobra"
@@ -33,15 +33,22 @@ var name string
 var usersCmd = &cobra.Command{
 	Use:   "users",
 	Short: "Gets users.",
-	Long:  `Gets users from dshare server`,
+	Long:  `Gets users from dshare server.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if cmd.Flags().Changed("name") {
-			logic.ReadUsers()
+			name, err := cmd.Flags().GetString("name")
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			user, ok := logic.ReadUserByName(name)
+			if ok {
+				logic.PrintUser(user)
+			}
 		} else {
-			fmt.Println("Name was not given")
+			users := logic.ReadUsers()
+			logic.PrintUsers(users)
 		}
-		// name, _ := cmd.Flags().GetString("name")
-		// fmt.Println(name)
 	},
 }
 

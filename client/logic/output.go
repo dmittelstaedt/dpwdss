@@ -13,7 +13,8 @@ const userHeader = "ID\tFIRSTNAME\tLASTNAME\tNAME\tROLE"
 const groupHeader = "ID\tNAME"
 const permissionHeader = "ID\tUSER\tGROUP"
 
-func printUser(user models.User) {
+// PrintUser prints the given user.
+func PrintUser(user models.User) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, userHeader)
@@ -22,7 +23,8 @@ func printUser(user models.User) {
 	w.Flush()
 }
 
-func printUsers(users []models.User) {
+// PrintUsers prints the given users.
+func PrintUsers(users []models.User) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, userHeader)
@@ -33,7 +35,8 @@ func printUsers(users []models.User) {
 	w.Flush()
 }
 
-func printGroup(group models.Group) {
+// PrintGroup prints the given group.
+func PrintGroup(group models.Group) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, groupHeader)
@@ -42,7 +45,8 @@ func printGroup(group models.Group) {
 	w.Flush()
 }
 
-func printGroups(groups []models.Group) {
+// PrintGroups prints the given groups.
+func PrintGroups(groups []models.Group) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, groupHeader)
@@ -53,7 +57,8 @@ func printGroups(groups []models.Group) {
 	w.Flush()
 }
 
-func printPermission(permission models.PermissionOut) {
+// PrintPermission prints the given permission.
+func PrintPermission(permission models.PermissionOut) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, permissionHeader)
@@ -62,7 +67,8 @@ func printPermission(permission models.PermissionOut) {
 	w.Flush()
 }
 
-func printPermissions(permissions []models.PermissionOut) {
+// PrintPermissions prints the given permissions.
+func PrintPermissions(permissions []models.PermissionOut) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 	fmt.Fprintln(w, permissionHeader)
