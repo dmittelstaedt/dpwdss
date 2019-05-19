@@ -78,6 +78,23 @@ func readGroup(id int) models.Group {
 	return group
 }
 
+// ReadGroupByName returns group for given name.
+func ReadGroupByName(name string) (models.Group, bool) {
+	resp := sendRequest("GET", apiEndpoint+"groups?name="+name)
+	defer resp.Body.Close()
+
+	var groups []models.Group
+	if err := json.NewDecoder(resp.Body).Decode(&groups); err != nil {
+		log.Println(err)
+	}
+
+	if len(groups) == 1 {
+		return groups[0], true
+	}
+
+	return models.Group{}, false
+}
+
 // ReadPermissions returns all permissions.
 func ReadPermissions() []models.Permission {
 	resp := sendRequest("GET", apiEndpoint+"permissions")

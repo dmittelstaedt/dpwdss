@@ -27,13 +27,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var userName string
+var groupName string
 
-// usersCmd represents the users command
-var usersCmd = &cobra.Command{
-	Use:   "users",
-	Short: "Get users.",
-	Long:  `Get users from dshare server.`,
+// groupsCmd represents the groups command
+var groupsCmd = &cobra.Command{
+	Use:   "groups",
+	Short: "Get groups",
+	Long:  `Get groups from dshare server.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if cmd.Flags().Changed("name") {
 			name, err := cmd.Flags().GetString("name")
@@ -41,18 +41,18 @@ var usersCmd = &cobra.Command{
 				log.Println(err)
 				return
 			}
-			user, ok := logic.ReadUserByName(name)
+			group, ok := logic.ReadGroupByName(name)
 			if ok {
-				logic.PrintUser(user)
+				logic.PrintGroup(group)
 			}
 		} else {
-			users := logic.ReadUsers()
-			logic.PrintUsers(users)
+			groups := logic.ReadGroups()
+			logic.PrintGroups(groups)
 		}
 	},
 }
 
 func init() {
-	getCmd.AddCommand(usersCmd)
-	usersCmd.Flags().StringVarP(&userName, "name", "n", "", "Name of a user")
+	getCmd.AddCommand(groupsCmd)
+	groupsCmd.Flags().StringVarP(&groupName, "name", "n", "", "Name of a groups")
 }
