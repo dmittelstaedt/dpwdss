@@ -100,7 +100,7 @@ func updateUser(db *sql.DB, user User) int64 {
 	return rowCnt
 }
 
-// readUsers returns a slice with all users.
+// readGroups returns a slice with all groups.
 func readGroups(db *sql.DB) []Group {
 	stmt, err := db.Prepare("select id, name from groups")
 	if err != nil {
@@ -109,6 +109,31 @@ func readGroups(db *sql.DB) []Group {
 	defer stmt.Close()
 
 	rows, err := stmt.Query()
+	if err != nil {
+		log.Println(err)
+	}
+	defer rows.Close()
+
+	var groups []Group
+	for rows.Next() {
+		var group Group
+		if err = rows.Scan(&group.ID, &group.Name); err != nil {
+			log.Println(err)
+		}
+		groups = append(groups, group)
+	}
+	return groups
+}
+
+// readGroupssWhereName returns a slice with all groups based on the given name.
+func readGroupsWhereName(db *sql.DB, name string) []Group {
+	stmt, err := db.Prepare("select id, name from groups where name=?")
+	if err != nil {
+		log.Println(err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(name)
 	if err != nil {
 		log.Println(err)
 	}

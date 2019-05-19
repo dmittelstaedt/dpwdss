@@ -92,8 +92,14 @@ func (server *Server) updateUserHandler(w http.ResponseWriter, r *http.Request) 
 // readGroupsHandler handles requests for reading all group.
 func (server *Server) readGroupsHandler(w http.ResponseWriter, r *http.Request) {
 	logRequest(r)
+	name := r.URL.Query().Get("name")
 
-	groups := readGroups(server.DB)
+	var groups []Group
+	if name == "" {
+		groups = readGroups(server.DB)
+	} else {
+		groups = readGroupsWhereName(server.DB, name)
+	}
 
 	response, err := json.Marshal(groups)
 	if err != nil {

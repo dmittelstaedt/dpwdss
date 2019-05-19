@@ -36,6 +36,7 @@ func (server *Server) SetRoutes() {
 
 	// groups
 	subrouter.Methods("GET").Path("/groups").Name("readGroups").HandlerFunc(server.readGroupsHandler)
+	subrouter.Methods("GET").Path("/groups").Name("readGroups").HandlerFunc(server.readGroupsHandler).Queries("name", "{name}")
 	subrouter.Methods("GET").Path("/groups/{id}").Name("readGroup").HandlerFunc(server.readGroupHandler)
 
 	// permissions

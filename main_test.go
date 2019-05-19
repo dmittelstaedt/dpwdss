@@ -241,6 +241,23 @@ func TestReadGroups(t *testing.T) {
 	}
 }
 
+func TestReadGroupssWhereName(t *testing.T) {
+	clearTables()
+	addGroupT(t, d1Read)
+	addGroupT(t, d1Write)
+
+	rr := executeRequest(t, "GET", "/groups?name=d1-read", nil)
+
+	checkResponseCode(t, http.StatusOK, rr.Code)
+
+	var groups []Group
+	decodeResponse(t, rr.Body, &groups)
+
+	if len(groups) != 1 {
+		t.Errorf("Expected number of groups %v, Got %v", 1, len(groups))
+	}
+}
+
 func TestReadNonIDGroup(t *testing.T) {
 	clearTables()
 
