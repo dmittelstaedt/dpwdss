@@ -27,7 +27,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var userName string
+var usersName string
 
 // usersCmd represents the users command
 var usersCmd = &cobra.Command{
@@ -54,5 +54,5 @@ var usersCmd = &cobra.Command{
 
 func init() {
 	getCmd.AddCommand(usersCmd)
-	usersCmd.Flags().StringVarP(&userName, "name", "n", "", "Name of a user")
+	usersCmd.Flags().StringVarP(&usersName, "name", "n", "", "Name of a user")
 }

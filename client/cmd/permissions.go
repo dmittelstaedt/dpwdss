@@ -21,38 +21,36 @@
 package cmd
 
 import (
-	"log"
-
 	"github.com/dmittelstaedt/dpwdss/client/logic"
+	"github.com/dmittelstaedt/dpwdss/client/models"
 	"github.com/spf13/cobra"
 )
 
-var groupsName string
+var userName string
+var groupName string
 
-// groupsCmd represents the groups command
-var groupsCmd = &cobra.Command{
-	Use:   "groups",
-	Short: "Get groups",
-	Long:  `Get groups from dshare server.`,
+// permissionsCmd represents the permissions command
+var permissionsCmd = &cobra.Command{
+	Use:   "permissions",
+	Short: "Get permissions",
+	Long:  `Get permissions from dshare server`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if cmd.Flags().Changed("name") {
-			name, err := cmd.Flags().GetString("name")
-			if err != nil {
-				log.Println(err)
-				return
+		var permissionsOut []models.PermissionOut
+		permissions := logic.ReadPermissions()
+		for _, permission := range permissions {
+			user := logic.ReadUser(permission.UserID)
+			var permissionOut = models.PermissionOut{
+				ID:       permission.ID,
+				UserName: user.Name,
 			}
-			group, ok := logic.ReadGroupByName(name)
-			if ok {
-				logic.PrintGroup(group)
-			}
-		} else {
-			groups := logic.ReadGroups()
-			logic.PrintGroups(groups)
+			permissionsOut = append(permissionsOut, permissionOut)
 		}
+		logic.PrintPermissions(permissionsOut)
 	},
 }
 
 func init() {
-	getCmd.AddCommand(groupsCmd)
-	groupsCmd.Flags().StringVarP(&groupsName, "name", "n", "", "Name of a groups")
+	getCmd.AddCommand(permissionsCmd)
+	permissionsCmd.Flags().StringVarP(&userName, "user", "u", "", "Name of a user")
+	permissionsCmd.Flags().StringVarP(&groupName, "group", "g", "", "Name of a group")
 }
