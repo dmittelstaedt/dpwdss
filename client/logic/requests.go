@@ -67,7 +67,7 @@ func ReadGroups() []models.Group {
 }
 
 // ReadGroup returns group for given ID.
-func readGroup(id int) models.Group {
+func ReadGroup(id int) models.Group {
 	resp := sendRequest("GET", apiEndpoint+"groups/"+strconv.Itoa(id))
 	defer resp.Body.Close()
 
@@ -106,31 +106,6 @@ func ReadPermissions() []models.Permission {
 	}
 
 	return permissions
-}
-
-// ReadPermissionsByUser returns all permissions for user with given name.
-func ReadPermissionsByUser(name string) []models.PermissionOut {
-	user, _ := ReadUserByName(name)
-	permissions := ReadPermissions()
-
-	var userPermissions []models.Permission
-
-	for _, permission := range permissions {
-		if permission.UserID == user.ID {
-			userPermissions = append(userPermissions, permission)
-		}
-	}
-
-	var permissionsOut []models.PermissionOut
-	for _, permission := range userPermissions {
-		group := readGroup(permission.GroupID)
-		permissionsOut = append(permissionsOut, models.PermissionOut{
-			ID:        permission.ID,
-			UserName:  user.Name,
-			GroupName: group.Name,
-		})
-	}
-	return permissionsOut
 }
 
 // ReadPermission returns permission for given ID.

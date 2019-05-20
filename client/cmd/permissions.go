@@ -21,6 +21,9 @@
 package cmd
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/dmittelstaedt/dpwdss/client/logic"
 	"github.com/dmittelstaedt/dpwdss/client/models"
 	"github.com/spf13/cobra"
@@ -35,17 +38,99 @@ var permissionsCmd = &cobra.Command{
 	Short: "Get permissions",
 	Long:  `Get permissions from dshare server`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var permissionsOut []models.PermissionOut
-		permissions := logic.ReadPermissions()
-		for _, permission := range permissions {
-			user := logic.ReadUser(permission.UserID)
-			var permissionOut = models.PermissionOut{
-				ID:       permission.ID,
-				UserName: user.Name,
+		if cmd.Flags().Changed("user") && !cmd.Flags().Changed("group") {
+			userN, err := cmd.Flags().GetString("user")
+			if err != nil {
+				log.Println(err)
+				return
 			}
-			permissionsOut = append(permissionsOut, permissionOut)
+
+			user, ok := logic.ReadUserByName(userN)
+			if !ok {
+				fmt.Println("User not found.")
+				return
+			}
+
+			permissions := logic.ReadPermissions()
+			var permissionsOut []models.PermissionOut
+			for _, permission := range permissions {
+				if permission.UserID == user.ID {
+					permissionOut := logic.ConvertPermissions(&permission)
+					permissionsOut = append(permissionsOut, permissionOut)
+				}
+			}
+			logic.PrintPermissions(permissionsOut)
 		}
-		logic.PrintPermissions(permissionsOut)
+
+		if !cmd.Flags().Changed("user") && cmd.Flags().Changed("group") {
+			groupN, err := cmd.Flags().GetString("group")
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			group, ok := logic.ReadGroupByName(groupN)
+			if !ok {
+				fmt.Println("Group not found.")
+				return
+			}
+
+			permissions := logic.ReadPermissions()
+			var permissionsOut []models.PermissionOut
+			for _, permission := range permissions {
+				if permission.GroupID == group.ID {
+					permissionOut := logic.ConvertPermissions(&permission)
+					permissionsOut = append(permissionsOut, permissionOut)
+				}
+			}
+			logic.PrintPermissions(permissionsOut)
+		}
+
+		if cmd.Flags().Changed("user") && cmd.Flags().Changed("group") {
+			userN, err := cmd.Flags().GetString("user")
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			groupN, err := cmd.Flags().GetString("group")
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			user, ok := logic.ReadUserByName(userN)
+			if !ok {
+				fmt.Println("User not found.")
+				return
+			}
+
+			group, ok := logic.ReadGroupByName(groupN)
+			if !ok {
+				fmt.Println("Group not found.")
+				return
+			}
+
+			permissions := logic.ReadPermissions()
+			var permissionsOut []models.PermissionOut
+			for _, permission := range permissions {
+				if permission.UserID == user.ID && permission.GroupID == group.ID {
+					permissionOut := logic.ConvertPermissions(&permission)
+					permissionsOut = append(permissionsOut, permissionOut)
+				}
+			}
+			logic.PrintPermissions(permissionsOut)
+		}
+
+		if !cmd.Flags().Changed("user") && !cmd.Flags().Changed("group") {
+			permissions := logic.ReadPermissions()
+			var permissionsOut []models.PermissionOut
+			for _, permission := range permissions {
+				permissionOut := logic.ConvertPermissions(&permission)
+				permissionsOut = append(permissionsOut, permissionOut)
+			}
+			logic.PrintPermissions(permissionsOut)
+		}
 	},
 }
 
