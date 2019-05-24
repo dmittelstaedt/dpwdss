@@ -18,12 +18,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package main
+package cmd
 
-import "github.com/dmittelstaedt/dpwdss/client/cmd"
+import (
+	"fmt"
 
-// TODO: Version, Git Commit and Build Date as flag
+	"github.com/spf13/cobra"
+)
 
-func main() {
-	cmd.Execute()
+var sUserName string
+var sGroupName string
+
+// setPermissionsCmd represents the setPermissions command
+var setPermissionsCmd = &cobra.Command{
+	Use:   "permissions",
+	Short: "Set permissions",
+	Long:  `Get permissions from dshare server`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("setPermissions called")
+		// TODO: Check if permission and reverse permission exists --> swap read to write
+		// TODO: Get ID from user and group
+		// TODO: Update permission with post request --> content in body --> encode
+		// TODO: if permission not found, print message with hint to use add
+	},
+}
+
+func init() {
+	setCmd.AddCommand(setPermissionsCmd)
+	getPermissionsCmd.Flags().StringVarP(&sUserName, "user", "u", "", "Name of a user")
+	getPermissionsCmd.Flags().StringVarP(&sGroupName, "group", "g", "", "Name of a group")
 }
