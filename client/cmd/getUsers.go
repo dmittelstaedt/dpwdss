@@ -29,8 +29,8 @@ import (
 
 var usersName string
 
-// usersCmd represents the users command
-var usersCmd = &cobra.Command{
+// getUsersCmd represents the getUsers command
+var getUsersCmd = &cobra.Command{
 	Use:   "users",
 	Short: "Get users.",
 	Long:  `Get users from dshare server.`,
@@ -53,6 +53,6 @@ var usersCmd = &cobra.Command{
 }
 
 func init() {
-	getCmd.AddCommand(usersCmd)
-	usersCmd.Flags().StringVarP(&usersName, "name", "n", "", "Name of a user")
+	getCmd.AddCommand(getUsersCmd)
+	getUsersCmd.Flags().StringVarP(&usersName, "name", "n", "", "Name of a user")
 }

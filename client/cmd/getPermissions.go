@@ -32,8 +32,8 @@ import (
 var userName string
 var groupName string
 
-// permissionsCmd represents the permissions command
-var permissionsCmd = &cobra.Command{
+// getPermissionsCmd represents the getPermissions command
+var getPermissionsCmd = &cobra.Command{
 	Use:   "permissions",
 	Short: "Get permissions",
 	Long:  `Get permissions from dshare server`,
@@ -135,7 +135,7 @@ var permissionsCmd = &cobra.Command{
 }
 
 func init() {
-	getCmd.AddCommand(permissionsCmd)
-	permissionsCmd.Flags().StringVarP(&userName, "user", "u", "", "Name of a user")
-	permissionsCmd.Flags().StringVarP(&groupName, "group", "g", "", "Name of a group")
+	getCmd.AddCommand(getPermissionsCmd)
+	getPermissionsCmd.Flags().StringVarP(&userName, "user", "u", "", "Name of a user")
+	getPermissionsCmd.Flags().StringVarP(&groupName, "group", "g", "", "Name of a group")
 }

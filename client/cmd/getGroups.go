@@ -29,8 +29,8 @@ import (
 
 var groupsName string
 
-// groupsCmd represents the groups command
-var groupsCmd = &cobra.Command{
+// getGroupsCmd represents the getGroups command
+var getGroupsCmd = &cobra.Command{
 	Use:   "groups",
 	Short: "Get groups",
 	Long:  `Get groups from dshare server.`,
@@ -53,6 +53,6 @@ var groupsCmd = &cobra.Command{
 }
 
 func init() {
-	getCmd.AddCommand(groupsCmd)
-	groupsCmd.Flags().StringVarP(&groupsName, "name", "n", "", "Name of a groups")
+	getCmd.AddCommand(getGroupsCmd)
+	getGroupsCmd.Flags().StringVarP(&groupsName, "name", "n", "", "Name of a groups")
 }
